@@ -430,6 +430,8 @@ const Review = () => {
               <Label>ประเภทความช่วยเหลือที่ต้องการ</Label>
               <div className="grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg">
                 {[
+                  { id: 'drowning', label: 'จมน้ำ' },
+                  { id: 'trapped', label: 'ติดขัง' },
                   { id: 'water', label: 'ขาดน้ำดื่ม' },
                   { id: 'food', label: 'ขาดอาหาร' },
                   { id: 'electricity', label: 'ขาดไฟฟ้า' },

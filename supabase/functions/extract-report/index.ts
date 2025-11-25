@@ -56,7 +56,7 @@ EXTRACTION GUIDELINES:
 - number_of_patients: Count people with medical conditions only if stated (0 if not present)
 - health_condition: Only mention if health issues are stated like "ป่วย", "โรคหัวใจ" (empty if not present)
 - help_needed: Only if specifically requested like "ต้องการเรือ", "ขาดอาหาร" (empty if not present)
-- help_categories: Array of category IDs for help types mentioned - water (ขาดน้ำดื่ม), food (ขาดอาหาร), electricity (ขาดไฟฟ้า), shelter (ต้องการที่พักพิง), medical (คนเจ็บ/ต้องการรักษา), medicine (ขาดยา), evacuation (ต้องการอพยพ), missing (คนหาย), clothes (เสื้อผ้า), other (อื่นๆ) (empty array if not present)
+- help_categories: Array of category IDs for help types mentioned - drowning (จมน้ำ), trapped (ติดขัง), water (ขาดน้ำดื่ม), food (ขาดอาหาร), electricity (ขาดไฟฟ้า), shelter (ต้องการที่พักพิง), medical (คนเจ็บ/ต้องการรักษา), medicine (ขาดยา), evacuation (ต้องการอพยพ), missing (คนหาย), clothes (เสื้อผ้า), other (อื่นๆ) (empty array if not present)
 - additional_info: Other important details not covered above (empty if not present)
 
 EXAMPLE OF CORRECT EXTRACTION:
@@ -162,9 +162,9 @@ REMEMBER: When in doubt, leave it empty. Wrong data is worse than no data in a d
                       type: 'array',
                       items: { 
                         type: 'string',
-                        enum: ['water', 'food', 'electricity', 'shelter', 'medical', 'medicine', 'evacuation', 'missing', 'clothes', 'other']
+                        enum: ['drowning', 'trapped', 'water', 'food', 'electricity', 'shelter', 'medical', 'medicine', 'evacuation', 'missing', 'clothes', 'other']
                       },
-                      description: 'ประเภทความช่วยเหลือที่ต้องการ: water (ขาดน้ำดื่ม), food (ขาดอาหาร), electricity (ขาดไฟฟ้า), shelter (ต้องการที่พักพิง), medical (คนเจ็บ/ต้องการรักษา), medicine (ขาดยา), evacuation (ต้องการอพยพ), missing (คนหาย), clothes (เสื้อผ้า), other (อื่นๆ)' 
+                      description: 'ประเภทความช่วยเหลือที่ต้องการ: drowning (จมน้ำ), trapped (ติดขัง), water (ขาดน้ำดื่ม), food (ขาดอาหาร), electricity (ขาดไฟฟ้า), shelter (ต้องการที่พักพิง), medical (คนเจ็บ/ต้องการรักษา), medicine (ขาดยา), evacuation (ต้องการอพยพ), missing (คนหาย), clothes (เสื้อผ้า), other (อื่นๆ)' 
                     },
                     additional_info: { 
                       type: 'string', 
@@ -237,7 +237,7 @@ REMEMBER: When in doubt, leave it empty. Wrong data is worse than no data in a d
                         number_of_seniors: { type: 'integer', description: 'จำนวนผู้สูงอายุ (อายุมากกว่า 60 ปี)' },
                          health_condition: { type: 'string', description: 'ภาวะสุขภาพพิเศษ เช่น ป่วย พิการ ติดเตียง' },
                          help_needed: { type: 'string', description: 'ความช่วยเหลือที่ต้องการ เช่น เรือ อาหาร น้ำดื่ม ยา' },
-                         help_categories: { type: 'array', items: { type: 'string', enum: ['water', 'food', 'electricity', 'shelter', 'medical', 'medicine', 'evacuation', 'missing', 'clothes', 'other'] }, description: 'ประเภทความช่วยเหลือที่ต้องการ' },
+                         help_categories: { type: 'array', items: { type: 'string', enum: ['drowning', 'trapped', 'water', 'food', 'electricity', 'shelter', 'medical', 'medicine', 'evacuation', 'missing', 'clothes', 'other'] }, description: 'ประเภทความช่วยเหลือที่ต้องการ' },
                          additional_info: { type: 'string', description: 'ข้อมูลเพิ่มเติมที่สำคัญอื่นๆ ที่ควรบันทึก' },
                         urgency_level: { type: 'integer', description: 'ระดับความเร่งด่วน 1-5 ตามเกณฑ์ที่กำหนด' }
                       },
