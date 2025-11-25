@@ -28,6 +28,8 @@ import {
   ArrowUp,
   ArrowDown,
   MapPin,
+  RefreshCw,
+  ChevronLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -75,6 +77,9 @@ const Dashboard = () => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const itemsPerPage = 50;
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -93,6 +98,25 @@ const Dashboard = () => {
 
     return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedReports.length / itemsPerPage);
+  const paginatedReports = sortedReports.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchReports();
+    setIsRefreshing(false);
+    toast.success('รีเฟรชข้อมูลสำเร็จ');
+  };
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, urgencyFilter, selectedCategories]);
 
   const exportToCSV = () => {
     if (filteredReports.length === 0) {
@@ -467,15 +491,29 @@ const Dashboard = () => {
         {/* Heatmap */}
         <ReportHeatmap reports={filteredReports} />
 
-        <div className="flex justify-end">
-          <Button
-            onClick={exportToCSV}
-            variant="outline"
-            disabled={filteredReports.length === 0}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            ส่งออก CSV ({filteredReports.length} รายการ)
-          </Button>
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            ทั้งหมด {sortedReports.length} รายการ
+            {totalPages > 1 && ` • หน้า ${currentPage}/${totalPages}`}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'กำลังรีเฟรช...' : 'รีเฟรช'}
+            </Button>
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              disabled={filteredReports.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              ส่งออก CSV
+            </Button>
+          </div>
         </div>
 
         {/* Table */}
@@ -569,7 +607,7 @@ const Dashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedReports.map((report) => {
+                    {paginatedReports.map((report) => {
                       const isExpanded = expandedRows.has(report.id);
                       return (
                         <>
@@ -699,6 +737,52 @@ const Dashboard = () => {
                     })}
                   </TableBody>
                 </Table>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between p-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, sortedReports.length)} จาก {sortedReports.length} รายการ
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                      >
+                        หน้าแรก
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm px-2">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                      >
+                        หน้าสุดท้าย
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
