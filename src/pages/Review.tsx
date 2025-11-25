@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Save, AlertCircle, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DuplicateDialog } from "@/components/DuplicateDialog";
 
 interface ExtractedData {
   name: string;
@@ -38,6 +39,9 @@ const Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
+  const [duplicates, setDuplicates] = useState<any[]>([]);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [pendingSave, setPendingSave] = useState(false);
 
   useEffect(() => {
     const extractedData = location.state?.extractedData;
@@ -59,7 +63,35 @@ const Review = () => {
     }
   }, [location, navigate]);
 
-  const handleSave = async () => {
+  const checkForDuplicates = async (rawMessage: string) => {
+    try {
+      // Generate embedding for the raw message
+      const { data: embeddingData, error: embeddingError } = await supabase.functions.invoke(
+        'generate-embedding',
+        { body: { text: rawMessage } }
+      );
+
+      if (embeddingError) throw embeddingError;
+
+      // Check for duplicates
+      const { data: duplicateData, error: duplicateError } = await supabase.functions.invoke(
+        'check-duplicates',
+        { body: { embedding: embeddingData.embedding, threshold: 0.85 } }
+      );
+
+      if (duplicateError) throw duplicateError;
+
+      return duplicateData.duplicates || [];
+    } catch (err) {
+      console.error('Error checking duplicates:', err);
+      toast.error('ไม่สามารถตรวจสอบข้อมูลซ้ำได้', {
+        description: 'จะดำเนินการบันทึกตามปกติ'
+      });
+      return [];
+    }
+  };
+
+  const performSave = async () => {
     if (!formData) return;
 
     setIsSaving(true);
@@ -80,6 +112,12 @@ const Review = () => {
         }
       }
 
+      // Generate embedding for the report
+      const { data: embeddingData, error: embeddingError } = await supabase.functions.invoke(
+        'generate-embedding',
+        { body: { text: formData.raw_message } }
+      );
+
       const dataToSave = {
         ...formData,
         name: formData.name && formData.name !== '-' ? formData.name : 'ไม่ระบุชื่อ',
@@ -87,6 +125,7 @@ const Review = () => {
         location_lat: formData.location_lat ? parseFloat(formData.location_lat) : null,
         location_long: formData.location_long ? parseFloat(formData.location_long) : null,
         last_contact_at: validLastContact,
+        embedding: embeddingError ? null : embeddingData.embedding,
       };
 
       const { error } = await supabase.from('reports').insert([dataToSave]);
@@ -120,7 +159,38 @@ const Review = () => {
       });
     } finally {
       setIsSaving(false);
+      setPendingSave(false);
     }
+  };
+
+  const handleSave = async () => {
+    if (!formData || pendingSave) return;
+
+    setPendingSave(true);
+    setIsSaving(true);
+
+    // Check for duplicates first
+    const foundDuplicates = await checkForDuplicates(formData.raw_message);
+
+    if (foundDuplicates.length > 0) {
+      setDuplicates(foundDuplicates);
+      setShowDuplicateDialog(true);
+      setIsSaving(false);
+    } else {
+      // No duplicates found, proceed with save
+      await performSave();
+    }
+  };
+
+  const handleSaveAnyway = async () => {
+    setShowDuplicateDialog(false);
+    await performSave();
+  };
+
+  const handleCancelSave = () => {
+    setShowDuplicateDialog(false);
+    setPendingSave(false);
+    setIsSaving(false);
   };
 
   if (!formData) {
@@ -386,6 +456,14 @@ const Review = () => {
           </Card>
         </div>
       </div>
+
+      <DuplicateDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        duplicates={duplicates}
+        onSaveAnyway={handleSaveAnyway}
+        onCancel={handleCancelSave}
+      />
     </div>
   );
 };

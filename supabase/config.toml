@@ -1,1 +1,13 @@
 project_id = "jyvojztgptxidemjscgg"
+
+[functions.extract-report]
+verify_jwt = false
+
+[functions.query-reports]
+verify_jwt = false
+
+[functions.generate-embedding]
+verify_jwt = false
+
+[functions.check-duplicates]
+verify_jwt = false
