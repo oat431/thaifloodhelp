@@ -93,13 +93,13 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
           <div
-            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0 overflow-hidden"
             onClick={() => navigate("/")}
           >
-            <img src={logo} alt="Thai Flood Help Logo" className="h-8 w-8 sm:h-10 sm:w-10" />
-            <div>
-              <h1 className="text-base sm:text-lg font-bold">ช่วยเหลือผู้ประสบภัย</h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Flood Help System</p>
+            <img src={logo} alt="Thai Flood Help Logo" className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 flex-shrink-0" />
+            <div className="min-w-0 overflow-hidden">
+              <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate whitespace-nowrap">ช่วยเหลือผู้ประสบภัย</h1>
+              <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground hidden md:block truncate whitespace-nowrap">Flood Help System</p>
             </div>
           </div>
 
@@ -177,10 +177,10 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu */}
-          <div className="md:hidden">
+          <div className="md:hidden flex-shrink-0">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
