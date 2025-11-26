@@ -101,6 +101,8 @@ const Landing = () => {
             className="text-sm sm:text-base md:text-lg text-white/95 mb-2 md:mb-3 font-medium px-4 max-w-4xl mx-auto"
           >
             เว็บไซต์ที่ช่วยรวบรวมข้อมูลที่กระจัดกระจายตามช่องทางต่างๆ
+            <br />
+            โดยให้ AI สกัดออกมาเป็นประเด็นสำคัญ เพื่อให้การช่วยเหลือได้รวดเร็วขึ้น
           </motion.p>
 
           <motion.p 
