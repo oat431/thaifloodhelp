@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,11 +13,10 @@ import {
   Pencil,
   ExternalLink
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PhoneList } from "@/components/PhoneList";
 import { EditReportDialog } from "@/components/EditReportDialog";
-import type { Report } from "@/types/report";
+import { useReport } from "@/hooks/use-reports";
 import {
   formatCaseId,
   getUrgencyBadgeClass,
@@ -31,17 +30,25 @@ import {
 const ReportDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [report, setReport] = useState<Report | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  const { data: report, isLoading, error } = useReport(id);
+
+  if (error && !isLoading) {
+    toast.error('ไม่พบข้อมูลรายงาน');
+    navigate('/dashboard');
+    return null;
+  }
+
   const handleShare = async () => {
+    if (!report) return;
+    
     const url = window.location.href;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `รายงานผู้ประสบภัย - ${report?.name} ${report?.lastname}`,
+          title: `รายงานผู้ประสบภัย - ${report.name} ${report.lastname}`,
           text: `กรณี ${formatCaseId(id!)} - ต้องการความช่วยเหลือ`,
           url: url
         });
@@ -62,59 +69,8 @@ const ReportDetail = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      if (!id) {
-        navigate('/dashboard');
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('reports')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
-
-        if (!data) {
-          toast.error('ไม่พบข้อมูลรายงาน');
-          navigate('/dashboard');
-          return;
-        }
-
-        setReport(data);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        toast.error('ไม่สามารถโหลดข้อมูลได้');
-        navigate('/dashboard');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchReport();
-  }, [id, navigate]);
-
   const handleEditSuccess = () => {
-    // Refresh report data
-    const fetchReport = async () => {
-      if (!id) return;
-
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (!error && data) {
-        setReport(data);
-      }
-    };
-
-    fetchReport();
+    toast.success('อัปเดตข้อมูลสำเร็จ');
   };
 
   if (isLoading) {

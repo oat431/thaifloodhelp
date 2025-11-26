@@ -13,9 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2, Save } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatPhoneNumber } from "@/lib/utils";
+import { useUpdateReport } from "@/hooks/use-reports";
 import type { Report } from "@/types/report";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
@@ -29,7 +29,7 @@ interface EditReportDialogProps {
 export function EditReportDialog({ report, open, onOpenChange, onSuccess }: EditReportDialogProps) {
   const [formData, setFormData] = useState<Report>(report);
   const [phoneInput, setPhoneInput] = useState(report.phone?.join(', ') || '');
-  const [isSaving, setIsSaving] = useState(false);
+  const updateReport = useUpdateReport();
 
   // Update form data when report prop changes
   useEffect(() => {
@@ -38,8 +38,6 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
   }, [report]);
 
   const handleSave = async () => {
-    setIsSaving(true);
-
     try {
       // Parse and format phone numbers
       const phones = phoneInput
@@ -70,14 +68,10 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
         status: formData.status,
       };
 
-      const { error } = await supabase
-        .from('reports')
-        .update(dataToUpdate)
-        .eq('id', report.id);
-
-      if (error) {
-        throw error;
-      }
+      await updateReport.mutateAsync({
+        id: report.id,
+        data: dataToUpdate,
+      });
 
       toast.success('แก้ไขข้อมูลสำเร็จ', {
         description: 'ข้อมูลได้รับการอัปเดตแล้ว'
@@ -90,8 +84,6 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
       toast.error('ไม่สามารถแก้ไขข้อมูลได้', {
         description: err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง'
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -397,15 +389,15 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isSaving}
+            disabled={updateReport.isPending}
           >
             ยกเลิก
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={updateReport.isPending}
           >
-            {isSaving ? (
+            {updateReport.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 กำลังบันทึก...

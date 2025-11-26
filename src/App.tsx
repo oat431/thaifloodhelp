@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LiffProvider } from "./contexts/LiffContext";
 import Landing from "./pages/Landing";
@@ -20,7 +21,22 @@ import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 
-const queryClient = new QueryClient();
+// Configure QueryClient with optimized defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30 * 1000, // 30 seconds - data is fresh for 30s
+      gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+      refetchOnWindowFocus: true, // Refetch when window regains focus
+      refetchOnReconnect: true, // Refetch when network reconnects
+      retry: 1,
+      retryDelay: 1000,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 const AppContent = () => {
   const location = useLocation();
@@ -62,6 +78,7 @@ const App = () => (
           <AppContent />
         </BrowserRouter>
       </TooltipProvider>
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </LiffProvider>
 );

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,160 +14,36 @@ import {
   MapPin,
   Heart,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Report } from "@/types/report";
+import { useStats } from "@/hooks/use-stats";
+import { useAllReports, reportKeys } from "@/hooks/use-reports";
 import ReportHeatmap from "@/components/ReportHeatmap";
 
-interface Stats {
-  total: number;
-  totalPeople: number;
-  critical: number;
-  high: number;
-  needsAttention: number;
-  pending: number;
-  processed: number;
-  completed: number;
-  adults: number;
-  children: number;
-  infants: number;
-  seniors: number;
-  patients: number;
-  urgencyLevel1: number;
-  urgencyLevel2: number;
-  urgencyLevel3: number;
-  urgencyLevel4: number;
-  urgencyLevel5: number;
-}
-
 const Stats = () => {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [stats, setStats] = useState<Stats>({
-    total: 0,
-    totalPeople: 0,
-    critical: 0,
-    high: 0,
-    needsAttention: 0,
-    pending: 0,
-    processed: 0,
-    completed: 0,
-    adults: 0,
-    children: 0,
-    infants: 0,
-    seniors: 0,
-    patients: 0,
-    urgencyLevel1: 0,
-    urgencyLevel2: 0,
-    urgencyLevel3: 0,
-    urgencyLevel4: 0,
-    urgencyLevel5: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const [showHeatmap, setShowHeatmap] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-    fetchReportsForHeatmap();
-  }, []);
+  // Use TanStack Query hooks
+  const { data: stats, isLoading, isRefetching, refetch } = useStats();
+  const { data: reports = [] } = useAllReports();
 
-  const fetchStats = async () => {
-    setIsLoading(true);
-    try {
-      // Fetch aggregated statistics using multiple queries in parallel
-      const [
-        { count: total },
-        { data: statusCounts },
-        { data: urgencyCounts },
-      ] = await Promise.all([
-        // Total count
-        supabase.from('reports').select('*', { count: 'exact', head: true }),
-        // Status counts
-        supabase.from('reports').select('status'),
-        // Urgency level counts
-        supabase.from('reports').select('urgency_level'),
-      ]);
-
-      // Calculate status counts
-      const statusCountMap = (statusCounts || []).reduce((acc: Record<string, number>, r: { status: string | null }) => {
-        const status = r.status || 'pending';
-        acc[status] = (acc[status] || 0) + 1;
-        return acc;
-      }, {});
-
-      // Calculate urgency counts
-      const urgencyCountMap = (urgencyCounts || []).reduce((acc: Record<number, number>, r: { urgency_level: number }) => {
-        acc[r.urgency_level] = (acc[r.urgency_level] || 0) + 1;
-        return acc;
-      }, {});
-
-      // Fetch individual columns for summing (Supabase doesn't support aggregate functions in select)
-      const { data: peopleData } = await supabase
-        .from('reports')
-        .select('number_of_adults, number_of_children, number_of_infants, number_of_seniors, number_of_patients');
-
-      const calculatedStats = (peopleData || []).reduce((acc, r) => ({
-        adults: acc.adults + (r.number_of_adults || 0),
-        children: acc.children + (r.number_of_children || 0),
-        infants: acc.infants + (r.number_of_infants || 0),
-        seniors: acc.seniors + (r.number_of_seniors || 0),
-        patients: acc.patients + (r.number_of_patients || 0),
-      }), { adults: 0, children: 0, infants: 0, seniors: 0, patients: 0 });
-
-      const totalPeople = calculatedStats.adults + calculatedStats.children + calculatedStats.infants + calculatedStats.seniors;
-
-      setStats({
-        total: total || 0,
-        totalPeople,
-        critical: (urgencyCountMap[4] || 0) + (urgencyCountMap[5] || 0),
-        high: urgencyCountMap[3] || 0,
-        needsAttention: (urgencyCountMap[3] || 0) + (urgencyCountMap[4] || 0) + (urgencyCountMap[5] || 0),
-        pending: statusCountMap['pending'] || 0,
-        processed: statusCountMap['processed'] || 0,
-        completed: statusCountMap['completed'] || 0,
-        adults: calculatedStats.adults,
-        children: calculatedStats.children,
-        infants: calculatedStats.infants,
-        seniors: calculatedStats.seniors,
-        patients: calculatedStats.patients,
-        urgencyLevel1: urgencyCountMap[1] || 0,
-        urgencyLevel2: urgencyCountMap[2] || 0,
-        urgencyLevel3: urgencyCountMap[3] || 0,
-        urgencyLevel4: urgencyCountMap[4] || 0,
-        urgencyLevel5: urgencyCountMap[5] || 0,
-      });
-    } catch (err) {
-      console.error('Fetch stats error:', err);
-      toast.error('ไม่สามารถโหลดข้อมูลสถิติได้');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch reports for heatmap (needs help_categories, urgency_level, and people counts)
-  const fetchReportsForHeatmap = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('reports')
-        .select('id, urgency_level, help_categories, number_of_adults, number_of_children, number_of_infants, number_of_seniors, number_of_patients');
-
-      if (error) throw error;
-      setReports(data as Report[] || []);
-    } catch (err) {
-      console.error('Fetch heatmap data error:', err);
-    }
-  };
+  // Filter reports for heatmap (needs help_categories, urgency_level, and people counts)
+  const heatmapReports = reports.filter(
+    (r) => r.urgency_level && (r.help_categories || r.number_of_adults !== undefined)
+  );
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await Promise.all([fetchStats(), fetchReportsForHeatmap()]);
-    setIsRefreshing(false);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: reportKeys.stats() }),
+      queryClient.invalidateQueries({ queryKey: reportKeys.list({ all: true }) }),
+    ]);
+    await refetch();
     toast.success('รีเฟรชข้อมูลสำเร็จ');
   };
 
-  const vulnerableCount = stats.infants + stats.children + stats.seniors + stats.patients;
-  const hasCompletedCases = stats.completed > 0;
-  const hasPendingWork = stats.pending > 0 || stats.processed > 0;
+  const vulnerableCount = stats ? stats.infants + stats.children + stats.seniors + stats.patients : 0;
+  const hasCompletedCases = stats ? stats.completed > 0 : false;
+  const hasPendingWork = stats ? stats.pending > 0 || stats.processed > 0 : false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 md:p-8">
@@ -181,9 +58,9 @@ const Stats = () => {
             onClick={handleRefresh}
             variant="outline"
             size="sm"
-            disabled={isRefreshing}
+            disabled={isRefetching}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
             รีเฟรช
           </Button>
         </div>
@@ -192,7 +69,7 @@ const Stats = () => {
           <div className="flex items-center justify-center p-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : stats.total === 0 ? (
+        ) : !stats || stats.total === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -354,7 +231,7 @@ const Stats = () => {
               <CardContent>
                 <div className="space-y-4">
                   {[5, 4, 3, 2, 1].map((level) => {
-                    const urgencyKey = `urgencyLevel${level}` as keyof Stats;
+                    const urgencyKey = `urgencyLevel${level}` as keyof typeof stats;
                     const count = stats[urgencyKey] as number;
                     const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0;
 
@@ -414,7 +291,7 @@ const Stats = () => {
               </CardHeader>
               {showHeatmap && (
                 <CardContent>
-                  <ReportHeatmap reports={reports} />
+                  <ReportHeatmap reports={heatmapReports} />
                 </CardContent>
               )}
             </Card>
