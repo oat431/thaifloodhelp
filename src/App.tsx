@@ -12,6 +12,7 @@ import Stats from "./pages/Stats";
 import ReportDetail from "./pages/ReportDetail";
 import Help from "./pages/Help";
 import Map from "./pages/Map";
+import Api from "./pages/Api";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/stats" element={<Stats />} />
               <Route path="/report/:id" element={<ReportDetail />} />
               <Route path="/map" element={<Map />} />
+              <Route path="/api" element={<Api />} />
               <Route path="/help" element={<Help />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
