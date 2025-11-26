@@ -133,13 +133,17 @@ const InteractiveMap = ({
         });
 
         // Add markers for each report with valid location
-        const validReports = reports.filter(
-            (report) =>
-                report.location_lat !== null &&
-                report.location_long !== null &&
-                !isNaN(report.location_lat) &&
-                !isNaN(report.location_long)
-        );
+        const validReports = reports.filter((report) => {
+            const lat = parseFloat(report.location_lat?.toString() || '0');
+            const lng = parseFloat(report.location_long?.toString() || '0');
+
+            return (
+                !isNaN(lat) &&
+                !isNaN(lng) &&
+                lat >= -90 && lat <= 90 &&
+                lng >= -180 && lng <= 180
+            );
+        });
 
         validReports.forEach((report) => {
             const { location_lat, location_long, urgency_level } = report;
