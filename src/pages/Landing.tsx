@@ -1,68 +1,81 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, MessageSquarePlus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import heroFlood from "@/assets/hero-flood.jpg";
-import MissionSections from "@/components/MissionSections";
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Search, MessageSquarePlus } from 'lucide-react'
+import { supabase } from '@/integrations/supabase/client'
+import heroFlood from '@/assets/hero-flood.jpg'
+import MissionSections from '@/components/MissionSections'
 
 const Landing = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [stats, setStats] = useState({
     totalReports: 0,
     helpedCount: 0,
-    urgentCount: 0
-  });
+    urgentCount: 0,
+  })
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    loadStats()
+  }, [])
 
   const loadStats = async () => {
     try {
       // Run queries in parallel for better performance
       const [totalResult, helpedResult, urgentResult] = await Promise.all([
         supabase.from('reports').select('*', { count: 'exact', head: true }),
-        supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-        supabase.from('reports').select('*', { count: 'exact', head: true }).gte('urgency_level', 4)
-      ]);
+        supabase
+          .from('reports')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'completed'),
+        supabase
+          .from('reports')
+          .select('*', { count: 'exact', head: true })
+          .gte('urgency_level', 4),
+      ])
 
       setStats({
         totalReports: totalResult.count || 0,
         helpedCount: helpedResult.count || 0,
-        urgentCount: urgentResult.count || 0
-      });
+        urgentCount: urgentResult.count || 0,
+      })
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error('Error loading stats:', error)
       // Keep current stats or show 0 - don't crash the page
-      setStats({ totalReports: 0, helpedCount: 0, urgentCount: 0 });
+      setStats({ totalReports: 0, helpedCount: 0, urgentCount: 0 })
     }
-  };
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15
-      }
-    }
-  };
+        staggerChildren: 0.15,
+      },
+    },
+  }
 
   const itemVariants = {
     hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
-      opacity: 1
-    }
-  };
+      opacity: 1,
+    },
+  }
 
   return (
     <div className="min-h-screen">
       {/* Hero Section with Background Image */}
-      <section className="relative overflow-hidden py-12 md:py-16 px-4 min-h-screen flex items-center" style={{ backgroundImage: `url(${heroFlood})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <section
+        className="relative overflow-hidden py-12 md:py-16 px-4 min-h-screen flex items-center"
+        style={{
+          backgroundImage: `url(${heroFlood})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* Black overlay with 50% opacity */}
         <div className="absolute inset-0 bg-black/50" />
 
@@ -85,7 +98,8 @@ const Landing = () => {
           >
             เว็บไซต์ที่ช่วยรวบรวมข้อมูลที่กระจัดกระจายตามช่องทางต่างๆ
             <br />
-            โดยให้ AI สกัดออกมาเป็นประเด็นสำคัญ เพื่อให้การช่วยเหลือได้รวดเร็วขึ้น
+            โดยให้ AI สกัดออกมาเป็นประเด็นสำคัญ
+            เพื่อให้การช่วยเหลือได้รวดเร็วขึ้น
           </motion.p>
 
           <motion.p
@@ -148,8 +162,12 @@ const Landing = () => {
               >
                 <MessageSquarePlus className="mr-2 h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 flex-shrink-0" />
                 <div className="flex flex-col items-start">
-                  <span className="text-sm sm:text-base md:text-lg">ช่วยใส่ข้อมูลจาก Social</span>
-                  <span className="text-xs font-normal opacity-90 hidden sm:block">คุณสามารถช่วยชีวิตได้ด้วยการใส่ข้อมูล</span>
+                  <span className="text-sm sm:text-base md:text-lg">
+                    ช่วยใส่ข้อมูลจาก Social
+                  </span>
+                  <span className="text-xs font-normal opacity-90 hidden sm:block">
+                    คุณสามารถช่วยชีวิตได้ด้วยการใส่ข้อมูล
+                  </span>
                 </div>
               </Button>
             </div>
@@ -169,7 +187,7 @@ const Landing = () => {
         </motion.div>
       </section>
     </div>
-  );
-};
+  )
+}
 
-export default Landing;
+export default Landing

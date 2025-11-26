@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -11,51 +11,69 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Loader2, Save } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { formatPhoneNumber } from "@/lib/utils";
-import type { Report } from "@/types/report";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+} from '@/components/ui/dialog'
+import { Loader2, Save } from 'lucide-react'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
+import { formatPhoneNumber } from '@/lib/utils'
+import type { Report } from '@/types/report'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 
 interface EditReportDialogProps {
-  report: Report;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  report: Report
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSuccess: () => void
 }
 
-export function EditReportDialog({ report, open, onOpenChange, onSuccess }: EditReportDialogProps) {
-  const [formData, setFormData] = useState<Report>(report);
-  const [phoneInput, setPhoneInput] = useState(report.phone?.join(', ') || '');
-  const [isSaving, setIsSaving] = useState(false);
+export function EditReportDialog({
+  report,
+  open,
+  onOpenChange,
+  onSuccess,
+}: EditReportDialogProps) {
+  const [formData, setFormData] = useState<Report>(report)
+  const [phoneInput, setPhoneInput] = useState(report.phone?.join(', ') || '')
+  const [isSaving, setIsSaving] = useState(false)
 
   // Update form data when report prop changes
   useEffect(() => {
-    setFormData(report);
-    setPhoneInput(report.phone?.join(', ') || '');
-  }, [report]);
+    setFormData(report)
+    setPhoneInput(report.phone?.join(', ') || '')
+  }, [report])
 
   const handleSave = async () => {
-    setIsSaving(true);
+    setIsSaving(true)
 
     try {
       // Parse and format phone numbers
       const phones = phoneInput
         .split(',')
-        .map(p => p.trim())
-        .filter(p => p.length > 0)
-        .map(p => formatPhoneNumber(p));
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0)
+        .map((p) => formatPhoneNumber(p))
 
       const dataToUpdate = {
-        name: formData.name && formData.name !== '-' ? formData.name : 'ไม่ระบุชื่อ',
+        name:
+          formData.name && formData.name !== '-'
+            ? formData.name
+            : 'ไม่ระบุชื่อ',
         lastname: formData.lastname,
         reporter_name: formData.reporter_name,
         address: formData.address,
         phone: phones,
-        location_lat: formData.location_lat ? parseFloat(String(formData.location_lat)) : null,
-        location_long: formData.location_long ? parseFloat(String(formData.location_long)) : null,
+        location_lat: formData.location_lat
+          ? parseFloat(String(formData.location_lat))
+          : null,
+        location_long: formData.location_long
+          ? parseFloat(String(formData.location_long))
+          : null,
         map_link: formData.map_link || null,
         number_of_adults: formData.number_of_adults || 0,
         number_of_children: formData.number_of_children || 0,
@@ -68,32 +86,33 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
         additional_info: formData.additional_info,
         urgency_level: formData.urgency_level,
         status: formData.status,
-      };
+      }
 
       const { error } = await supabase
         .from('reports')
         .update(dataToUpdate)
-        .eq('id', report.id);
+        .eq('id', report.id)
 
       if (error) {
-        throw error;
+        throw error
       }
 
       toast.success('แก้ไขข้อมูลสำเร็จ', {
-        description: 'ข้อมูลได้รับการอัปเดตแล้ว'
-      });
+        description: 'ข้อมูลได้รับการอัปเดตแล้ว',
+      })
 
-      onSuccess();
-      onOpenChange(false);
+      onSuccess()
+      onOpenChange(false)
     } catch (err) {
-      console.error('Update error:', err);
+      console.error('Update error:', err)
       toast.error('ไม่สามารถแก้ไขข้อมูลได้', {
-        description: err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง'
-      });
+        description:
+          err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง',
+      })
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,7 +131,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
               <Input
                 id="edit-reporter"
                 value={formData.reporter_name || ''}
-                onChange={(e) => setFormData({ ...formData, reporter_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, reporter_name: e.target.value })
+                }
                 placeholder="-"
               />
             </div>
@@ -120,8 +141,10 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <div className="space-y-2">
               <Label htmlFor="edit-status">สถานะ</Label>
               <Select
-                value={formData.status || "pending"}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                value={formData.status || 'pending'}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="เลือกสถานะ" />
@@ -141,7 +164,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
               <Input
                 id="edit-name"
                 value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="-"
               />
             </div>
@@ -151,7 +176,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
               <Input
                 id="edit-lastname"
                 value={formData.lastname || ''}
-                onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastname: e.target.value })
+                }
               />
             </div>
           </div>
@@ -161,7 +188,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <Textarea
               id="edit-address"
               value={formData.address || ''}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, address: e.target.value })
+              }
               rows={3}
               placeholder="-"
             />
@@ -183,7 +212,14 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
               <Input
                 id="edit-location_lat"
                 value={formData.location_lat || ''}
-                onChange={(e) => setFormData({ ...formData, location_lat: e.target.value ? parseFloat(e.target.value) : null })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    location_lat: e.target.value
+                      ? parseFloat(e.target.value)
+                      : null,
+                  })
+                }
                 placeholder="-"
               />
             </div>
@@ -193,7 +229,14 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
               <Input
                 id="edit-location_long"
                 value={formData.location_long || ''}
-                onChange={(e) => setFormData({ ...formData, location_long: e.target.value ? parseFloat(e.target.value) : null })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    location_long: e.target.value
+                      ? parseFloat(e.target.value)
+                      : null,
+                  })
+                }
                 placeholder="-"
               />
             </div>
@@ -204,7 +247,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <Input
               id="edit-map_link"
               value={formData.map_link || ''}
-              onChange={(e) => setFormData({ ...formData, map_link: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, map_link: e.target.value })
+              }
               placeholder="https://maps.google.com/..."
             />
           </div>
@@ -213,57 +258,107 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <Label>จำนวนผู้ประสบภัย</Label>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-adults" className="text-sm text-muted-foreground">ผู้ใหญ่</Label>
+                <Label
+                  htmlFor="edit-adults"
+                  className="text-sm text-muted-foreground"
+                >
+                  ผู้ใหญ่
+                </Label>
                 <Input
                   id="edit-adults"
                   type="number"
                   min="0"
                   value={formData.number_of_adults}
-                  onChange={(e) => setFormData({ ...formData, number_of_adults: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      number_of_adults: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-children" className="text-sm text-muted-foreground">เด็ก</Label>
+                <Label
+                  htmlFor="edit-children"
+                  className="text-sm text-muted-foreground"
+                >
+                  เด็ก
+                </Label>
                 <Input
                   id="edit-children"
                   type="number"
                   min="0"
                   value={formData.number_of_children}
-                  onChange={(e) => setFormData({ ...formData, number_of_children: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      number_of_children: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-infants" className="text-sm text-muted-foreground">ทารก</Label>
+                <Label
+                  htmlFor="edit-infants"
+                  className="text-sm text-muted-foreground"
+                >
+                  ทารก
+                </Label>
                 <Input
                   id="edit-infants"
                   type="number"
                   min="0"
                   value={formData.number_of_infants || 0}
-                  onChange={(e) => setFormData({ ...formData, number_of_infants: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      number_of_infants: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-seniors" className="text-sm text-muted-foreground">ผู้สูงอายุ</Label>
+                <Label
+                  htmlFor="edit-seniors"
+                  className="text-sm text-muted-foreground"
+                >
+                  ผู้สูงอายุ
+                </Label>
                 <Input
                   id="edit-seniors"
                   type="number"
                   min="0"
                   value={formData.number_of_seniors}
-                  onChange={(e) => setFormData({ ...formData, number_of_seniors: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      number_of_seniors: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-patients" className="text-sm text-muted-foreground">ผู้ป่วย</Label>
+                <Label
+                  htmlFor="edit-patients"
+                  className="text-sm text-muted-foreground"
+                >
+                  ผู้ป่วย
+                </Label>
                 <Input
                   id="edit-patients"
                   type="number"
                   min="0"
                   value={formData.number_of_patients || 0}
-                  onChange={(e) => setFormData({ ...formData, number_of_patients: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      number_of_patients: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -274,7 +369,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <Textarea
               id="edit-health"
               value={formData.health_condition || ''}
-              onChange={(e) => setFormData({ ...formData, health_condition: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, health_condition: e.target.value })
+              }
               rows={2}
               placeholder="-"
             />
@@ -301,13 +398,15 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`edit-${category.id}`}
-                    checked={formData.help_categories?.includes(category.id) || false}
+                    checked={
+                      formData.help_categories?.includes(category.id) || false
+                    }
                     onCheckedChange={(checked) => {
-                      const current = formData.help_categories || [];
+                      const current = formData.help_categories || []
                       const updated = checked
                         ? [...current, category.id]
-                        : current.filter((c) => c !== category.id);
-                      setFormData({ ...formData, help_categories: updated });
+                        : current.filter((c) => c !== category.id)
+                      setFormData({ ...formData, help_categories: updated })
                     }}
                   />
                   <label
@@ -326,7 +425,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <Textarea
               id="edit-help"
               value={formData.help_needed || ''}
-              onChange={(e) => setFormData({ ...formData, help_needed: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, help_needed: e.target.value })
+              }
               rows={2}
               placeholder="-"
             />
@@ -337,7 +438,9 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <Textarea
               id="edit-additional"
               value={formData.additional_info || ''}
-              onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, additional_info: e.target.value })
+              }
               rows={3}
               placeholder="-"
             />
@@ -348,14 +451,30 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
             <select
               id="edit-urgency"
               value={formData.urgency_level}
-              onChange={(e) => setFormData({ ...formData, urgency_level: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  urgency_level: parseInt(e.target.value),
+                })
+              }
               className="w-full p-2 border rounded-md bg-background"
             >
               <option value="1">1 - ยังไม่โดนน้ำ / แจ้งเตือน</option>
-              <option value="2">2 - ผู้ใหญ่ทั้งหมด น้ำท่วมชั้นล่าง (ไม่มีเด็ก/ผู้สูงอายุ/ทารก/ผู้ป่วย)</option>
-              <option value="3">3 - มีเด็ก หรือผู้สูงอายุ หรือน้ำถึงชั้นสอง</option>
-              <option value="4">4 - เด็กเล็กมาก หรือทารก หรือมีคนไข้/ป่วยติดเตียง หรือคนช่วยตัวเองไม่ได้</option>
-              <option value="5">5 - วิกฤต: น้ำถึงหลังคา/ติดบนหลังคา ทารกในอันตราย คนไข้อาการหนัก มีคนตาย</option>
+              <option value="2">
+                2 - ผู้ใหญ่ทั้งหมด น้ำท่วมชั้นล่าง
+                (ไม่มีเด็ก/ผู้สูงอายุ/ทารก/ผู้ป่วย)
+              </option>
+              <option value="3">
+                3 - มีเด็ก หรือผู้สูงอายุ หรือน้ำถึงชั้นสอง
+              </option>
+              <option value="4">
+                4 - เด็กเล็กมาก หรือทารก หรือมีคนไข้/ป่วยติดเตียง
+                หรือคนช่วยตัวเองไม่ได้
+              </option>
+              <option value="5">
+                5 - วิกฤต: น้ำถึงหลังคา/ติดบนหลังคา ทารกในอันตราย คนไข้อาการหนัก
+                มีคนตาย
+              </option>
             </select>
           </div>
 
@@ -401,10 +520,7 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
           >
             ยกเลิก
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-          >
+          <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -420,5 +536,5 @@ export function EditReportDialog({ report, open, onOpenChange, onSuccess }: Edit
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

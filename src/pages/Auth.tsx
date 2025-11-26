@@ -1,40 +1,46 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
+import { Loader2 } from 'lucide-react'
 
 const Auth = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { toast } = useToast()
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
 
-  const from = location.state?.from || "/";
+  const from = location.state?.from || '/'
 
   useEffect(() => {
     if (user) {
-      navigate(from);
+      navigate(from)
     }
-  }, [user, navigate, from]);
+  }, [user, navigate, from])
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
+      const redirectUrl = `${window.location.origin}/`
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -44,79 +50,80 @@ const Auth = () => {
             full_name: fullName,
           },
         },
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
 
       toast({
-        title: "ลงทะเบียนสำเร็จ",
-        description: "คุณสามารถเข้าสู่ระบบได้ทันที",
-      });
+        title: 'ลงทะเบียนสำเร็จ',
+        description: 'คุณสามารถเข้าสู่ระบบได้ทันที',
+      })
 
-      setEmail("");
-      setPassword("");
-      setFullName("");
+      setEmail('')
+      setPassword('')
+      setFullName('')
     } catch (error: any) {
       toast({
-        title: "เกิดข้อผิดพลาด",
+        title: 'เกิดข้อผิดพลาด',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
 
       toast({
-        title: "เข้าสู่ระบบสำเร็จ",
-      });
+        title: 'เข้าสู่ระบบสำเร็จ',
+      })
 
-      navigate(from);
+      navigate(from)
     } catch (error: any) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: error.message === "Invalid login credentials" 
-          ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" 
-          : error.message,
-        variant: "destructive",
-      });
+        title: 'เกิดข้อผิดพลาด',
+        description:
+          error.message === 'Invalid login credentials'
+            ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+            : error.message,
+        variant: 'destructive',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/`,
         },
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
     } catch (error: any) {
       toast({
-        title: "เกิดข้อผิดพลาด",
+        title: 'เกิดข้อผิดพลาด',
         description: error.message,
-        variant: "destructive",
-      });
-      setLoading(false);
+        variant: 'destructive',
+      })
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
@@ -206,7 +213,9 @@ const Auth = () => {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {loading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     เข้าสู่ระบบ
                   </Button>
                 </form>
@@ -252,7 +261,9 @@ const Auth = () => {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {loading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     ลงทะเบียน
                   </Button>
                 </form>
@@ -267,7 +278,7 @@ const Auth = () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default Auth;
+export default Auth
