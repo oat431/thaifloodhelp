@@ -9,6 +9,10 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Api = () => {
+  const [ocrInput, setOcrInput] = useState("");
+  const [ocrResponse, setOcrResponse] = useState("");
+  const [ocrLoading, setOcrLoading] = useState(false);
+  
   const [extractInput, setExtractInput] = useState("");
   const [extractResponse, setExtractResponse] = useState("");
   const [extractLoading, setExtractLoading] = useState(false);
@@ -17,10 +21,15 @@ const Api = () => {
   const [saveResponse, setSaveResponse] = useState("");
   const [saveLoading, setSaveLoading] = useState(false);
   
+  const [copiedOcr, setCopiedOcr] = useState(false);
   const [copiedExtract, setCopiedExtract] = useState(false);
   const [copiedSave, setCopiedSave] = useState(false);
 
   const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+
+  const ocrExample = JSON.stringify({
+    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+  }, null, 2);
 
   const extractExample = JSON.stringify({
     message: "ช่วยด้วยครับ คุณสมชาย ใจดี อยู่บ้านเลขที่ 123 หมู่ 5 ตำบลบ้านใหม่ อำเภอเมือง จังหวัดเชียงใหม่ โทร 081-234-5678 น้ำท่วมบ้านสูง 1 เมตร มีผู้สูงอายุ 2 คน เด็ก 3 คน ต้องการอาหารและน้ำดื่มเร่งด่วน"
@@ -46,6 +55,48 @@ const Api = () => {
     raw_message: "ช่วยด้วยครับ คุณสมชาย ใจดี อยู่บ้านเลขที่ 123 หมู่ 5 ตำบลบ้านใหม่ อำเภอเมือง จังหวัดเชียงใหม่ โทร 081-234-5678 น้ำท่วมบ้านสูง 1 เมตร มีผู้สูงอายุ 2 คน เด็ก 3 คน ต้องการอาหารและน้ำดื่มเร่งด่วน",
     reporter_name: null
   }, null, 2);
+
+  const handleOcr = async () => {
+    if (!ocrInput.trim()) {
+      toast.error("กรุณาใส่ข้อมูล JSON");
+      return;
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(ocrInput);
+    } catch {
+      toast.error("รูปแบบ JSON ไม่ถูกต้อง");
+      return;
+    }
+
+    setOcrLoading(true);
+    setOcrResponse("");
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api-v1-ocr`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      setOcrResponse(JSON.stringify(data, null, 2));
+      
+      if (response.ok) {
+        toast.success("อ่านรูปภาพสำเร็จ");
+      } else {
+        toast.error(`เกิดข้อผิดพลาด: ${response.status}`);
+      }
+    } catch (error) {
+      toast.error("ไม่สามารถเชื่อมต่อ API ได้");
+      setOcrResponse(JSON.stringify({ error: String(error) }, null, 2));
+    } finally {
+      setOcrLoading(false);
+    }
+  };
 
   const handleExtract = async () => {
     if (!extractInput.trim()) {
@@ -131,9 +182,12 @@ const Api = () => {
     }
   };
 
-  const copyToClipboard = (text: string, type: "extract" | "save") => {
+  const copyToClipboard = (text: string, type: "ocr" | "extract" | "save") => {
     navigator.clipboard.writeText(text);
-    if (type === "extract") {
+    if (type === "ocr") {
+      setCopiedOcr(true);
+      setTimeout(() => setCopiedOcr(false), 2000);
+    } else if (type === "extract") {
       setCopiedExtract(true);
       setTimeout(() => setCopiedExtract(false), 2000);
     } else {
@@ -175,11 +229,109 @@ const Api = () => {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="extract" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="ocr" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="ocr">OCR API</TabsTrigger>
             <TabsTrigger value="extract">Extract API</TabsTrigger>
             <TabsTrigger value="save">Save API</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="ocr" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Badge>POST</Badge>
+                  <code className="text-sm">/api-v1-ocr</code>
+                </div>
+                <CardDescription>
+                  อ่านข้อความจากรูปภาพด้วย OCR (Optical Character Recognition)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Headers</h3>
+                  <pre className="bg-muted p-4 rounded text-sm">
+{`Content-Type: application/json`}
+                  </pre>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Request Body</h3>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(ocrExample, "ocr")}
+                    >
+                      {copiedOcr ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <pre className="bg-muted p-4 rounded text-sm overflow-x-auto">
+{ocrExample}
+                  </pre>
+                  <p className="text-sm text-muted-foreground">
+                    หมายเหตุ: ส่งรูปภาพในรูปแบบ Base64 data URL (data:image/[type];base64,[data])
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-semibold">ทดสอบ API</h3>
+                  <Textarea
+                    placeholder="วาง JSON request body ที่นี่..."
+                    value={ocrInput}
+                    onChange={(e) => setOcrInput(e.target.value)}
+                    rows={8}
+                    className="font-mono text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setOcrInput(ocrExample)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      ใช้ตัวอย่าง
+                    </Button>
+                    <Button 
+                      onClick={handleOcr} 
+                      disabled={ocrLoading}
+                      className="flex-1"
+                    >
+                      {ocrLoading ? (
+                        "กำลังอ่านรูปภาพ..."
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          ส่งคำขอ
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {ocrResponse && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold">Response</h3>
+                    <pre className="bg-muted p-4 rounded text-sm overflow-x-auto max-h-96">
+{ocrResponse}
+                    </pre>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Example cURL</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="bg-muted p-4 rounded text-sm overflow-x-auto">
+{`curl -X POST '${API_BASE_URL}/api-v1-ocr' \\
+  -H 'Content-Type: application/json' \\
+  -d '${ocrExample.replace(/\n/g, "").replace(/\s+/g, " ")}'`}
+                </pre>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="extract" className="space-y-4">
             <Card>
