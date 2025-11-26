@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Droplets, Loader2, ImagePlus, X, User } from "lucide-react";
+import { AlertCircle, Loader2, ImagePlus, X, User } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
@@ -216,9 +216,6 @@ const Input = () => {
 
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Droplets className="h-12 w-12 text-primary" />
-          </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
             ช่วยใส่ข้อมูลที่เจอใน social media
           </h1>
