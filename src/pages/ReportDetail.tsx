@@ -1,77 +1,79 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  MapPin,
-  Phone,
-  Users,
   AlertCircle,
   Calendar,
-  Share2,
+  ExternalLink,
+  MapPin,
   Pencil,
-  ExternalLink
-} from "lucide-react";
-import { toast } from "sonner";
-import { PhoneList } from "@/components/PhoneList";
-import { EditReportDialog } from "@/components/EditReportDialog";
-import { useReport } from "@/hooks/use-reports";
+  Phone,
+  Share2,
+  Users,
+} from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
+
+import { EditReportDialog } from '@/components/EditReportDialog'
+import { PhoneList } from '@/components/PhoneList'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useReport } from '@/hooks/use-reports'
 import {
   formatCaseId,
+  formatDate,
+  getCategoryLabel,
+  getStatusLabel,
+  getTotalPeople,
   getUrgencyBadgeClass,
   getUrgencyLabel,
-  getStatusLabel,
-  getCategoryLabel,
-  getTotalPeople,
-  formatDate
-} from "@/lib/reportUtils";
+} from '@/lib/reportUtils'
+import type { Report } from '@/types/report'
 
 const ReportDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-  const { data: report, isLoading, error } = useReport(id);
+  const { data: report, isLoading, error } = useReport(id)
 
   if (error && !isLoading) {
-    toast.error('ไม่พบข้อมูลรายงาน');
-    navigate('/dashboard');
-    return null;
+    toast.error('ไม่พบข้อมูลรายงาน')
+    navigate('/dashboard')
+    return null
   }
 
   const handleShare = async () => {
-    if (!report) return;
-    
-    const url = window.location.href;
+    if (!report) return
+
+    const url = window.location.href
 
     if (navigator.share) {
       try {
         await navigator.share({
           title: `รายงานผู้ประสบภัย - ${report.name} ${report.lastname}`,
           text: `กรณี ${formatCaseId(id!)} - ต้องการความช่วยเหลือ`,
-          url: url
-        });
-        toast.success('แชร์ลิงก์สำเร็จ');
+          url: url,
+        })
+        toast.success('แชร์ลิงก์สำเร็จ')
       } catch (err) {
         // User cancelled or error occurred
       }
     } else {
       // Fallback to clipboard
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(url)
         toast.success('คัดลอกลิงก์สำเร็จ', {
-          description: 'ลิงก์ถูกคัดลอกไปยังคลิปบอร์ดแล้ว'
-        });
+          description: 'ลิงก์ถูกคัดลอกไปยังคลิปบอร์ดแล้ว',
+        })
       } catch (err) {
-        toast.error('ไม่สามารถคัดลอกลิงก์ได้');
+        toast.error('ไม่สามารถคัดลอกลิงก์ได้')
       }
     }
-  };
+  }
 
   const handleEditSuccess = () => {
-    toast.success('อัปเดตข้อมูลสำเร็จ');
-  };
+    toast.success('อัปเดตข้อมูลสำเร็จ')
+  }
 
   if (isLoading) {
     return (
@@ -81,14 +83,14 @@ const ReportDetail = () => {
           <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (!report) {
-    return null;
+    return null
   }
 
-  const totalPeople = getTotalPeople(report);
+  const totalPeople = getTotalPeople(report)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 md:p-8">
@@ -99,7 +101,11 @@ const ReportDetail = () => {
             <Share2 className="mr-2 h-4 w-4" />
             แชร์
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditDialogOpen(true)}
+          >
             <Pencil className="mr-2 h-4 w-4" />
             แก้ไข
           </Button>
@@ -111,19 +117,26 @@ const ReportDetail = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Case ID:</span>
-                  <span className="font-mono font-bold text-lg">{formatCaseId(report.id)}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Case ID:
+                  </span>
+                  <span className="font-mono font-bold text-lg">
+                    {formatCaseId(report.id)}
+                  </span>
                 </div>
-                <CardTitle className="text-2xl">{report.name} {report.lastname}</CardTitle>
+                <CardTitle className="text-2xl">
+                  {report.name} {report.lastname}
+                </CardTitle>
               </div>
 
               <div className="flex flex-col items-end gap-2">
-                <Badge className={getUrgencyBadgeClass(report.urgency_level)} variant="default">
+                <Badge
+                  className={getUrgencyBadgeClass(report.urgency_level)}
+                  variant="default"
+                >
                   ระดับความเร่งด่วน: {report.urgency_level}
                 </Badge>
-                <Badge variant="outline">
-                  {getStatusLabel(report.status)}
-                </Badge>
+                <Badge variant="outline">{getStatusLabel(report.status)}</Badge>
               </div>
             </div>
           </CardHeader>
@@ -135,8 +148,12 @@ const ReportDetail = () => {
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
               <div>
-                <h3 className="font-semibold text-destructive">กรณีเร่งด่วนสูง</h3>
-                <p className="text-sm text-muted-foreground mt-1">{getUrgencyLabel(report.urgency_level)}</p>
+                <h3 className="font-semibold text-destructive">
+                  กรณีเร่งด่วนสูง
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {getUrgencyLabel(report.urgency_level)}
+                </p>
               </div>
             </div>
           </div>
@@ -153,7 +170,9 @@ const ReportDetail = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm text-muted-foreground">ผู้รายงาน/แจ้งเรื่อง</p>
+                <p className="text-sm text-muted-foreground">
+                  ผู้รายงาน/แจ้งเรื่อง
+                </p>
                 <p className="font-medium">{report.reporter_name || '-'}</p>
               </div>
 
@@ -168,7 +187,9 @@ const ReportDetail = () => {
 
               <div>
                 <p className="text-sm text-muted-foreground">ที่อยู่</p>
-                <p className="font-medium break-words">{report.address || '-'}</p>
+                <p className="font-medium break-words">
+                  {report.address || '-'}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -182,7 +203,8 @@ const ReportDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {report.location_lat && report.location_long || report.map_link ? (
+              {(report.location_lat && report.location_long) ||
+              report.map_link ? (
                 <>
                   {report.location_lat && report.location_long && (
                     <div>
@@ -206,7 +228,9 @@ const ReportDetail = () => {
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground text-sm">ไม่มีข้อมูลตำแหน่ง</p>
+                <p className="text-muted-foreground text-sm">
+                  ไม่มีข้อมูลตำแหน่ง
+                </p>
               )}
             </CardContent>
           </Card>
@@ -223,24 +247,36 @@ const ReportDetail = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">ผู้ใหญ่</p>
-                  <p className="text-2xl font-bold">{report.number_of_adults || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {report.number_of_adults || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">เด็ก</p>
-                  <p className="text-2xl font-bold">{report.number_of_children || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {report.number_of_children || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">ทารก</p>
-                  <p className="text-2xl font-bold">{report.number_of_infants || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {report.number_of_infants || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">ผู้สูงอายุ</p>
-                  <p className="text-2xl font-bold">{report.number_of_seniors || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {report.number_of_seniors || 0}
+                  </p>
                 </div>
                 {report.number_of_patients > 0 && (
                   <div className="col-span-2">
-                    <p className="text-sm text-muted-foreground">ผู้ป่วย/ต้องการรักษา</p>
-                    <p className="text-2xl font-bold text-destructive">{report.number_of_patients}</p>
+                    <p className="text-sm text-muted-foreground">
+                      ผู้ป่วย/ต้องการรักษา
+                    </p>
+                    <p className="text-2xl font-bold text-destructive">
+                      {report.number_of_patients}
+                    </p>
                   </div>
                 )}
               </div>
@@ -277,7 +313,9 @@ const ReportDetail = () => {
           <CardContent className="space-y-4">
             {report.help_categories && report.help_categories.length > 0 && (
               <div>
-                <p className="text-sm text-muted-foreground mb-2">ประเภทความช่วยเหลือ</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  ประเภทความช่วยเหลือ
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {report.help_categories.map((cat) => (
                     <Badge key={cat} variant="secondary">
@@ -290,22 +328,34 @@ const ReportDetail = () => {
 
             {report.health_condition && (
               <div>
-                <p className="text-sm text-muted-foreground mb-1">ภาวะสุขภาพ/อาการ</p>
-                <p className="text-sm whitespace-pre-wrap break-words">{report.health_condition}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  ภาวะสุขภาพ/อาการ
+                </p>
+                <p className="text-sm whitespace-pre-wrap break-words">
+                  {report.health_condition}
+                </p>
               </div>
             )}
 
             {report.help_needed && (
               <div>
-                <p className="text-sm text-muted-foreground mb-1">รายละเอียดความช่วยเหลือ</p>
-                <p className="text-sm whitespace-pre-wrap break-words">{report.help_needed}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  รายละเอียดความช่วยเหลือ
+                </p>
+                <p className="text-sm whitespace-pre-wrap break-words">
+                  {report.help_needed}
+                </p>
               </div>
             )}
 
             {report.additional_info && (
               <div>
-                <p className="text-sm text-muted-foreground mb-1">ข้อมูลเพิ่มเติม</p>
-                <p className="text-sm whitespace-pre-wrap break-words">{report.additional_info}</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  ข้อมูลเพิ่มเติม
+                </p>
+                <p className="text-sm whitespace-pre-wrap break-words">
+                  {report.additional_info}
+                </p>
               </div>
             )}
           </CardContent>
@@ -319,7 +369,9 @@ const ReportDetail = () => {
             </CardHeader>
             <CardContent>
               <div className="bg-muted rounded-md p-4">
-                <pre className="text-sm whitespace-pre-wrap break-words font-mono">{report.raw_message}</pre>
+                <pre className="text-sm whitespace-pre-wrap break-words font-mono">
+                  {report.raw_message}
+                </pre>
               </div>
             </CardContent>
           </Card>
@@ -336,7 +388,7 @@ const ReportDetail = () => {
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ReportDetail;
+export default ReportDetail

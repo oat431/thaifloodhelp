@@ -1,13 +1,13 @@
-import { formatPhoneNumber, getPhoneLink } from "@/lib/utils";
+import { formatPhoneNumber, getPhoneLink } from '@/lib/utils'
 
 interface PhoneListProps {
-  phones: string[];
-  className?: string;
+  phones: string[]
+  className?: string
 }
 
-export const PhoneList = ({ phones, className = "" }: PhoneListProps) => {
+export const PhoneList = ({ phones, className = '' }: PhoneListProps) => {
   if (!phones || phones.length === 0) {
-    return <span>-</span>;
+    return <span>-</span>
   }
 
   return (
@@ -23,5 +23,5 @@ export const PhoneList = ({ phones, className = "" }: PhoneListProps) => {
         </a>
       ))}
     </div>
-  );
-};
+  )
+}

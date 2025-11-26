@@ -1,69 +1,70 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, CheckCircle, AlertCircle, FileText } from "lucide-react";
-import { toast } from "sonner";
-import { PhoneList } from "@/components/PhoneList";
+import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+
+import { PhoneList } from '@/components/PhoneList'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface ExtractedReport {
-  name: string;
-  lastname: string;
-  raw_message: string;
-  reporter_name: string;
-  last_contact_at: string;
-  address: string;
-  location_lat: string;
-  location_long: string;
-  phone: string[];
-  number_of_adults: number;
-  number_of_children: number;
-  number_of_seniors: number;
-  health_condition: string;
-  help_needed: string;
-  additional_info: string;
-  urgency_level: number;
+  name: string
+  lastname: string
+  raw_message: string
+  reporter_name: string
+  last_contact_at: string
+  address: string
+  location_lat: string
+  location_long: string
+  phone: string[]
+  number_of_adults: number
+  number_of_children: number
+  number_of_seniors: number
+  health_condition: string
+  help_needed: string
+  additional_info: string
+  urgency_level: number
 }
 
 const SelectReports = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [reports, setReports] = useState<ExtractedReport[]>([]);
-  const [selectedReports, setSelectedReports] = useState<Set<number>>(new Set());
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [reports, setReports] = useState<ExtractedReport[]>([])
+  const [selectedReports, setSelectedReports] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    const data = location.state?.reports;
+    const data = location.state?.reports
     if (!data || data.length === 0) {
-      toast.error('ไม่พบข้อมูล', { description: 'กรุณากรอกข้อมูลใหม่' });
-      navigate('/');
-      return;
+      toast.error('ไม่พบข้อมูล', { description: 'กรุณากรอกข้อมูลใหม่' })
+      navigate('/')
+      return
     }
-    setReports(data);
+    setReports(data)
     // Select all by default
-    setSelectedReports(new Set(data.map((_: any, i: number) => i)));
-  }, [location, navigate]);
+    setSelectedReports(new Set(data.map((_: any, i: number) => i)))
+  }, [location, navigate])
 
   const toggleReport = (index: number) => {
-    const newSelected = new Set(selectedReports);
+    const newSelected = new Set(selectedReports)
     if (newSelected.has(index)) {
-      newSelected.delete(index);
+      newSelected.delete(index)
     } else {
-      newSelected.add(index);
+      newSelected.add(index)
     }
-    setSelectedReports(newSelected);
-  };
+    setSelectedReports(newSelected)
+  }
 
   const handleContinue = () => {
-    const selected = reports.filter((_, i) => selectedReports.has(i));
+    const selected = reports.filter((_, i) => selectedReports.has(i))
     if (selected.length === 0) {
-      toast.error('กรุณาเลือกอย่างน้อย 1 รายการ');
-      return;
+      toast.error('กรุณาเลือกอย่างน้อย 1 รายการ')
+      return
     }
-    navigate('/review', { state: { reports: selected } });
-  };
+    navigate('/review', { state: { reports: selected } })
+  }
 
   const urgencyColors = [
     'urgency-badge-1',
@@ -71,20 +72,20 @@ const SelectReports = () => {
     'urgency-badge-3',
     'urgency-badge-4',
     'urgency-badge-5',
-  ];
+  ]
 
   const getTotalPeople = (report: ExtractedReport) => {
-    return report.number_of_adults + report.number_of_children + report.number_of_seniors;
-  };
+    return (
+      report.number_of_adults +
+      report.number_of_children +
+      report.number_of_seniors
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           กลับไปกรอกใหม่
         </Button>
@@ -92,16 +93,19 @@ const SelectReports = () => {
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            AI พบข้อมูลผู้ประสบภัย <strong>{reports.length} รายการ</strong> จากข้อความที่ท่านป้อน กรุณาเลือกรายการที่ต้องการบันทึก
+            AI พบข้อมูลผู้ประสบภัย <strong>{reports.length} รายการ</strong>{' '}
+            จากข้อความที่ท่านป้อน กรุณาเลือกรายการที่ต้องการบันทึก
           </AlertDescription>
         </Alert>
 
         <div className="grid grid-cols-1 gap-4">
           {reports.map((report, index) => (
-            <Card 
-              key={index} 
+            <Card
+              key={index}
               className={`shadow-lg transition-all cursor-pointer ${
-                selectedReports.has(index) ? 'border-primary border-2' : 'border-border'
+                selectedReports.has(index)
+                  ? 'border-primary border-2'
+                  : 'border-border'
               }`}
               onClick={() => toggleReport(index)}
             >
@@ -119,7 +123,9 @@ const SelectReports = () => {
                         <CardTitle className="text-xl">
                           {report.name || '(ไม่ระบุชื่อ)'} {report.lastname}
                         </CardTitle>
-                        <Badge className={urgencyColors[report.urgency_level - 1]}>
+                        <Badge
+                          className={urgencyColors[report.urgency_level - 1]}
+                        >
                           เร่งด่วน {report.urgency_level}
                         </Badge>
                       </div>
@@ -140,7 +146,9 @@ const SelectReports = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium">ที่อยู่:</span>
-                    <p className="text-muted-foreground">{report.address || '-'}</p>
+                    <p className="text-muted-foreground">
+                      {report.address || '-'}
+                    </p>
                   </div>
                   <div>
                     <span className="font-medium">เบอร์โทร:</span>
@@ -153,7 +161,9 @@ const SelectReports = () => {
                 <div className="flex items-center gap-6 text-sm flex-wrap">
                   <div>
                     <span className="font-medium">จำนวนรวม:</span>{' '}
-                    <span className="text-primary font-semibold">{getTotalPeople(report)} คน</span>
+                    <span className="text-primary font-semibold">
+                      {getTotalPeople(report)} คน
+                    </span>
                   </div>
                   {report.number_of_adults > 0 && (
                     <div className="text-muted-foreground">
@@ -182,14 +192,18 @@ const SelectReports = () => {
                 {report.health_condition && (
                   <div className="text-sm">
                     <span className="font-medium">ภาวะสุขภาพ:</span>{' '}
-                    <span className="text-muted-foreground">{report.health_condition}</span>
+                    <span className="text-muted-foreground">
+                      {report.health_condition}
+                    </span>
                   </div>
                 )}
 
                 {report.additional_info && (
                   <div className="text-sm">
                     <span className="font-medium">ข้อมูลเพิ่มเติม:</span>{' '}
-                    <span className="text-muted-foreground">{report.additional_info}</span>
+                    <span className="text-muted-foreground">
+                      {report.additional_info}
+                    </span>
                   </div>
                 )}
               </CardContent>
@@ -210,7 +224,7 @@ const SelectReports = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SelectReports;
+export default SelectReports

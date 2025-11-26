@@ -1,37 +1,37 @@
-import { useEffect, useState } from "react";
-import { Github } from "lucide-react";
+import { Github } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface Contributor {
-  id: number;
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  contributions: number;
+  id: number
+  login: string
+  avatar_url: string
+  html_url: string
+  contributions: number
 }
 
 const Footer = () => {
-  const [contributors, setContributors] = useState<Contributor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [contributors, setContributors] = useState<Contributor[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchContributors = async () => {
       try {
         const response = await fetch(
-          "https://api.github.com/repos/winn/thaifloodhelp/contributors"
-        );
+          'https://api.github.com/repos/winn/thaifloodhelp/contributors',
+        )
         if (response.ok) {
-          const data = await response.json();
-          setContributors(data);
+          const data = await response.json()
+          setContributors(data)
         }
       } catch (error) {
-        console.error("Failed to fetch contributors:", error);
+        console.error('Failed to fetch contributors:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchContributors();
-  }, []);
+    fetchContributors()
+  }, [])
 
   return (
     <footer className="w-full border-t bg-background/80 backdrop-blur-sm mt-auto">
@@ -48,7 +48,9 @@ const Footer = () => {
           </a>
 
           {loading ? (
-            <div className="text-sm text-muted-foreground">Loading contributors...</div>
+            <div className="text-sm text-muted-foreground">
+              Loading contributors...
+            </div>
           ) : contributors.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-2">
               {contributors.map((contributor) => (
@@ -83,7 +85,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

@@ -1,13 +1,14 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { Session, User } from '@supabase/supabase-js'
+import { createContext, useContext, useEffect, useState } from 'react'
+
+import { supabase } from '@/integrations/supabase/client'
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isAdmin: boolean;
-  loading: boolean;
-  signOut: () => Promise<void>;
+  user: User | null
+  session: Session | null
+  isAdmin: boolean
+  loading: boolean
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,84 +17,84 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
   signOut: async () => {},
-});
+})
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error('useAuth must be used within AuthProvider')
   }
-  return context;
-};
+  return context
+}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Defer role checking
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 0);
-        } else {
-          setIsAdmin(false);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+
+      // Defer role checking
+      if (session?.user) {
+        setTimeout(() => {
+          checkAdminRole(session.user.id)
+        }, 0)
+      } else {
+        setIsAdmin(false)
       }
-    );
+    })
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkAdminRole(session.user.id);
-      }
-      setLoading(false);
-    });
+      setSession(session)
+      setUser(session?.user ?? null)
 
-    return () => subscription.unsubscribe();
-  }, []);
+      if (session?.user) {
+        checkAdminRole(session.user.id)
+      }
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const checkAdminRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle()
 
       if (!error && data) {
-        setIsAdmin(true);
+        setIsAdmin(true)
       } else {
-        setIsAdmin(false);
+        setIsAdmin(false)
       }
     } catch (error) {
-      console.error("Error checking admin role:", error);
-      setIsAdmin(false);
+      console.error('Error checking admin role:', error)
+      setIsAdmin(false)
     }
-  };
+  }
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setIsAdmin(false);
-  };
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+    setIsAdmin(false)
+  }
 
   return (
     <AuthContext.Provider value={{ user, session, isAdmin, loading, signOut }}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}

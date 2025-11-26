@@ -1,9 +1,10 @@
-import type { Report } from "@/types/report";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin } from "lucide-react";
+import { MapPin } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { Report } from '@/types/report'
 
 interface MapProps {
-  reports: Report[];
+  reports: Report[]
 }
 
 /**
@@ -16,8 +17,8 @@ interface MapProps {
  */
 const Map: React.FC<MapProps> = ({ reports }) => {
   const reportsWithLocation = reports.filter(
-    (r) => r.location_lat !== null && r.location_long !== null
-  );
+    (r) => r.location_lat !== null && r.location_long !== null,
+  )
 
   return (
     <Card className="border-dashed">
@@ -29,19 +30,23 @@ const Map: React.FC<MapProps> = ({ reports }) => {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-2">
-          ขณะนี้ปิดการใช้งานแผนที่แบบโต้ตอบชั่วคราวเพื่อป้องกันข้อผิดพลาดบนหน้า Dashboard
+          ขณะนี้ปิดการใช้งานแผนที่แบบโต้ตอบชั่วคราวเพื่อป้องกันข้อผิดพลาดบนหน้า
+          Dashboard
         </p>
         <p className="text-sm">
           มีเคสที่มีพิกัดแผนที่ทั้งหมด
-          <span className="font-semibold mx-1">{reportsWithLocation.length}</span>
+          <span className="font-semibold mx-1">
+            {reportsWithLocation.length}
+          </span>
           เคส
         </p>
         <p className="text-xs text-muted-foreground mt-2">
-          คุณยังสามารถดูรายละเอียดแต่ละเคสและเปิด Google Maps จากปุ่มในตารางข้อมูลได้
+          คุณยังสามารถดูรายละเอียดแต่ละเคสและเปิด Google Maps
+          จากปุ่มในตารางข้อมูลได้
         </p>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default Map;
+export default Map

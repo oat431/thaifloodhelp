@@ -1,254 +1,300 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Loader2, ImagePlus, X, User } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { formatPhoneNumber } from "@/lib/utils";
-import { useLiff } from "@/contexts/LiffContext";
-import { Share2 } from "lucide-react";
+import { AlertCircle, ImagePlus, Loader2, User, X } from 'lucide-react'
+import { Share2 } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+import { useLiff } from '@/contexts/LiffContext'
+import { supabase } from '@/integrations/supabase/client'
+import { formatPhoneNumber } from '@/lib/utils'
 
 const Input = () => {
-  const [rawMessage, setRawMessage] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
-  const [error, setError] = useState("");
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-  const { isLoggedIn, profile, isLoading: isLiffLoading, isInLiffClient, shareTargetPicker, isShareAvailable } = useLiff();
+  const [rawMessage, setRawMessage] = useState('')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false)
+  const [error, setError] = useState('')
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
+  const {
+    isLoggedIn,
+    profile,
+    isLoading: isLiffLoading,
+    isInLiffClient,
+    shareTargetPicker,
+    isShareAvailable,
+  } = useLiff()
 
   const handleShare = async () => {
     try {
-      await shareTargetPicker();
-      toast.success('ขอบคุณที่ช่วยแชร์ครับ');
+      await shareTargetPicker()
+      toast.success('ขอบคุณที่ช่วยแชร์ครับ')
     } catch (err) {
-      console.error('Share error:', err);
+      console.error('Share error:', err)
     }
-  };
+  }
 
   const processImageFile = async (file: File) => {
     // Validate file type
-    if (!file.type.startsWith("image/")) {
-      setError("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
-      return;
+    if (!file.type.startsWith('image/')) {
+      setError('กรุณาเลือกไฟล์รูปภาพเท่านั้น')
+      return
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError("ไฟล์รูปภาพต้องมีขนาดไม่เกิน 10MB");
-      return;
+      setError('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 10MB')
+      return
     }
 
-    setError("");
-    setIsOcrProcessing(true);
+    setError('')
+    setIsOcrProcessing(true)
 
     // Create preview and get base64
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = async (event) => {
-      const base64Image = event.target?.result as string;
-      setPreviewImage(base64Image);
+      const base64Image = event.target?.result as string
+      setPreviewImage(base64Image)
 
       try {
-        toast.info("กำลังอ่านข้อความจากรูปภาพด้วย AI...", {
-          description: "กระบวนการนี้อาจใช้เวลาสักครู่",
-        });
+        toast.info('กำลังอ่านข้อความจากรูปภาพด้วย AI...', {
+          description: 'กระบวนการนี้อาจใช้เวลาสักครู่',
+        })
 
-        const { data, error: ocrError } = await supabase.functions.invoke('ocr-image', {
-          body: { image: base64Image }
-        });
+        const { data, error: ocrError } = await supabase.functions.invoke(
+          'ocr-image',
+          {
+            body: { image: base64Image },
+          },
+        )
 
-        if (ocrError) throw ocrError;
+        if (ocrError) throw ocrError
 
-        const extractedText = data.text?.trim();
+        const extractedText = data.text?.trim()
 
-        if (extractedText && extractedText !== "ไม่พบข้อความในรูปภาพ") {
+        if (extractedText && extractedText !== 'ไม่พบข้อความในรูปภาพ') {
           // Clean the extracted text
           const cleanedText = extractedText
-            .replace(/[\u200B-\u200D\uFEFF]/g, "") // Remove zero-width characters
-            .replace(/[^\S\r\n]+/g, " ") // Normalize spaces
-            .trim();
+            .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width characters
+            .replace(/[^\S\r\n]+/g, ' ') // Normalize spaces
+            .trim()
 
           setRawMessage((prev) =>
-            prev ? prev + "\n\n" + cleanedText : cleanedText
-          );
-          toast.success("อ่านข้อความสำเร็จ", {
-            description: "ข้อความถูกเพิ่มในช่องด้านล่างแล้ว",
-          });
+            prev ? prev + '\n\n' + cleanedText : cleanedText,
+          )
+          toast.success('อ่านข้อความสำเร็จ', {
+            description: 'ข้อความถูกเพิ่มในช่องด้านล่างแล้ว',
+          })
         } else {
-          toast.warning("ไม่พบข้อความในรูปภาพ", {
-            description: "กรุณาลองใช้รูปภาพที่มีข้อความชัดเจนกว่านี้",
-          });
+          toast.warning('ไม่พบข้อความในรูปภาพ', {
+            description: 'กรุณาลองใช้รูปภาพที่มีข้อความชัดเจนกว่านี้',
+          })
         }
       } catch (err) {
-        console.error("OCR error:", err);
-        setError("ไม่สามารถอ่านข้อความจากรูปภาพได้");
-        toast.error("เกิดข้อผิดพลาด", {
-          description: "ไม่สามารถอ่านข้อความจากรูปภาพได้",
-        });
+        console.error('OCR error:', err)
+        setError('ไม่สามารถอ่านข้อความจากรูปภาพได้')
+        toast.error('เกิดข้อผิดพลาด', {
+          description: 'ไม่สามารถอ่านข้อความจากรูปภาพได้',
+        })
       } finally {
-        setIsOcrProcessing(false);
+        setIsOcrProcessing(false)
         // Reset file input
         if (fileInputRef.current) {
-          fileInputRef.current.value = "";
+          fileInputRef.current.value = ''
         }
       }
-    };
-    reader.readAsDataURL(file);
-  };
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await processImageFile(file);
-  };
+    const file = e.target.files?.[0]
+    if (!file) return
+    await processImageFile(file)
+  }
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
     if (!isOcrProcessing && !isProcessing) {
-      setIsDragging(true);
+      setIsDragging(true)
     }
-  };
+  }
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
 
-    if (isOcrProcessing || isProcessing) return;
+    if (isOcrProcessing || isProcessing) return
 
-    const file = e.dataTransfer.files?.[0];
+    const file = e.dataTransfer.files?.[0]
     if (file) {
-      await processImageFile(file);
+      await processImageFile(file)
     }
-  };
+  }
 
   const clearPreviewImage = () => {
-    setPreviewImage(null);
-  };
+    setPreviewImage(null)
+  }
 
   const handleProcess = async () => {
     if (!rawMessage.trim()) {
-      setError("กรุณาวางข้อความที่ต้องการประมวลผล");
-      return;
+      setError('กรุณาวางข้อความที่ต้องการประมวลผล')
+      return
     }
 
-    setIsProcessing(true);
-    setError("");
+    setIsProcessing(true)
+    setError('')
 
     try {
-      const { data, error: functionError } = await supabase.functions.invoke('extract-report', {
-        body: { rawMessage: rawMessage.trim() }
-      });
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'extract-report',
+        {
+          body: { rawMessage: rawMessage.trim() },
+        },
+      )
 
       if (functionError) {
-        throw functionError;
+        throw functionError
       }
 
       if (data.error) {
-        throw new Error(data.error);
+        throw new Error(data.error)
       }
 
       // Format phone numbers in extracted reports
       const formattedReports = data.reports?.map((report: any) => ({
         ...report,
-        phone: report.phone?.map((p: string) => formatPhoneNumber(p)) || []
-      }));
+        phone: report.phone?.map((p: string) => formatPhoneNumber(p)) || [],
+      }))
 
       // Process each report to convert map links and geocode addresses
       const processedReports = await Promise.all(
         (formattedReports || []).map(async (report: any) => {
-          let updatedReport = { ...report };
+          const updatedReport = { ...report }
 
           // Step 1: Parse map_link if exists but no coordinates
-          if (report.map_link && report.map_link !== '-' && !report.location_lat && !report.location_long) {
+          if (
+            report.map_link &&
+            report.map_link !== '-' &&
+            !report.location_lat &&
+            !report.location_long
+          ) {
             try {
-              const { data: mapData } = await supabase.functions.invoke('parse-map-link', {
-                body: { mapLink: report.map_link }
-              });
+              const { data: mapData } = await supabase.functions.invoke(
+                'parse-map-link',
+                {
+                  body: { mapLink: report.map_link },
+                },
+              )
 
               if (mapData?.success && mapData.lat && mapData.lng) {
-                updatedReport.location_lat = mapData.lat;
-                updatedReport.location_long = mapData.lng;
-                console.log(`✓ Parsed map link: ${mapData.lat}, ${mapData.lng}`);
+                updatedReport.location_lat = mapData.lat
+                updatedReport.location_long = mapData.lng
+                console.log(`✓ Parsed map link: ${mapData.lat}, ${mapData.lng}`)
               }
             } catch (err) {
               // Silent fail - map link parsing is optional
-              console.log('Map link could not be parsed');
+              console.log('Map link could not be parsed')
             }
           }
 
           // Step 2: Complete address with AI then geocode if still no coordinates (silent - no user notification)
-          if (!updatedReport.location_lat && !updatedReport.location_long && report.address && report.address !== '-') {
+          if (
+            !updatedReport.location_lat &&
+            !updatedReport.location_long &&
+            report.address &&
+            report.address !== '-'
+          ) {
             try {
               // First, complete the address with AI
-              const { data: completionData } = await supabase.functions.invoke('complete-address', {
-                body: { address: report.address }
-              });
+              const { data: completionData } = await supabase.functions.invoke(
+                'complete-address',
+                {
+                  body: { address: report.address },
+                },
+              )
 
-              let addressToGeocode = report.address;
+              let addressToGeocode = report.address
               if (completionData?.completedAddress) {
-                addressToGeocode = completionData.completedAddress;
-                updatedReport.address = completionData.completedAddress;
-                console.log(`✓ Completed address: ${completionData.completedAddress}`);
+                addressToGeocode = completionData.completedAddress
+                updatedReport.address = completionData.completedAddress
+                console.log(
+                  `✓ Completed address: ${completionData.completedAddress}`,
+                )
               }
 
               // Then, geocode the completed address
-              const { data: geoData } = await supabase.functions.invoke('geocode-address', {
-                body: { address: addressToGeocode }
-              });
+              const { data: geoData } = await supabase.functions.invoke(
+                'geocode-address',
+                {
+                  body: { address: addressToGeocode },
+                },
+              )
 
               if (geoData?.success && geoData.lat && geoData.lng) {
-                updatedReport.location_lat = geoData.lat;
-                updatedReport.location_long = geoData.lng;
-                updatedReport.map_link = geoData.map_link;
-                console.log(`✓ Geocoded address: ${geoData.lat}, ${geoData.lng}`);
+                updatedReport.location_lat = geoData.lat
+                updatedReport.location_long = geoData.lng
+                updatedReport.map_link = geoData.map_link
+                console.log(
+                  `✓ Geocoded address: ${geoData.lat}, ${geoData.lng}`,
+                )
               } else {
                 // Address could not be geocoded - this is normal for vague addresses
-                console.log('Address geocoding not available for this location');
+                console.log('Address geocoding not available for this location')
               }
             } catch (err) {
               // Silent fail - address completion and geocoding are optional
-              console.log('Address could not be completed or geocoded');
+              console.log('Address could not be completed or geocoded')
             }
           }
 
-          return updatedReport;
-        })
-      );
+          return updatedReport
+        }),
+      )
 
       // Check if multiple reports were extracted
       if (processedReports && processedReports.length > 1) {
         // Navigate to selection page
-        navigate('/select', { state: { reports: processedReports } });
+        navigate('/select', { state: { reports: processedReports } })
       } else if (processedReports && processedReports.length === 1) {
         // Single report - go directly to review
-        navigate('/review', { state: { extractedData: processedReports[0] } });
+        navigate('/review', { state: { extractedData: processedReports[0] } })
       } else {
-        throw new Error('ไม่พบข้อมูลที่สามารถแยกได้');
+        throw new Error('ไม่พบข้อมูลที่สามารถแยกได้')
       }
     } catch (err) {
-      console.error('Processing error:', err);
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการประมวลผล');
+      console.error('Processing error:', err)
+      setError(
+        err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการประมวลผล',
+      )
       toast.error('ไม่สามารถประมวลผลได้', {
-        description: err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง'
-      });
+        description:
+          err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง',
+      })
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 md:p-8">
@@ -258,7 +304,10 @@ const Input = () => {
           <div className="flex items-center justify-center gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
             <Avatar className="h-10 w-10">
               {profile.pictureUrl ? (
-                <AvatarImage src={profile.pictureUrl} alt={profile.displayName} />
+                <AvatarImage
+                  src={profile.pictureUrl}
+                  alt={profile.displayName}
+                />
               ) : (
                 <AvatarFallback>
                   <User className="h-5 w-5" />
@@ -294,9 +343,11 @@ const Input = () => {
               วิธีใช้งาน
             </CardTitle>
             <CardDescription className="text-base">
-              1. คัดลอกข้อความจากโซเชียล (Facebook, Twitter, Line ฯลฯ) หรืออัพโหลดรูปภาพ
+              1. คัดลอกข้อความจากโซเชียล (Facebook, Twitter, Line ฯลฯ)
+              หรืออัพโหลดรูปภาพ
               <br />
-              2. วางข้อความในช่องด้านล่าง หรือใช้ปุ่ม "อัพโหลดรูปภาพ" เพื่อดึงข้อความจากรูป
+              2. วางข้อความในช่องด้านล่าง หรือใช้ปุ่ม "อัพโหลดรูปภาพ"
+              เพื่อดึงข้อความจากรูป
               <br />
               3. กดปุ่ม "ประมวลผลด้วย AI" แล้วรอสักครู่
             </CardDescription>
@@ -316,16 +367,21 @@ const Input = () => {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                onClick={() => !isOcrProcessing && !isProcessing && fileInputRef.current?.click()}
+                onClick={() =>
+                  !isOcrProcessing &&
+                  !isProcessing &&
+                  fileInputRef.current?.click()
+                }
                 className={`
                   w-full h-24 border-2 border-dashed rounded-lg cursor-pointer
                   flex flex-col items-center justify-center gap-2
                   transition-all duration-200
-                  ${isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02]"
-                    : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
+                  ${
+                    isDragging
+                      ? 'border-primary bg-primary/10 scale-[1.02]'
+                      : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50'
                   }
-                  ${(isOcrProcessing || isProcessing) ? "opacity-50 cursor-not-allowed" : ""}
+                  ${isOcrProcessing || isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
                 {isOcrProcessing ? (
@@ -346,7 +402,10 @@ const Input = () => {
                   <>
                     <ImagePlus className="h-6 w-6 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground text-center">
-                      ลากรูปภาพมาวางที่นี่ หรือ <span className="text-primary underline">คลิกเพื่อเลือกไฟล์</span>
+                      ลากรูปภาพมาวางที่นี่ หรือ{' '}
+                      <span className="text-primary underline">
+                        คลิกเพื่อเลือกไฟล์
+                      </span>
                     </span>
                     <span className="text-xs text-muted-foreground/70">
                       รองรับภาษาไทยและอังกฤษ (OCR)
@@ -394,36 +453,38 @@ const Input = () => {
 น้ำท่วมถึงชั้นสอง ต้องการเรือด่วน!"
               value={rawMessage}
               onChange={(e) => {
-                setRawMessage(e.target.value);
-                setError("");
+                setRawMessage(e.target.value)
+                setError('')
               }}
               onPaste={(e) => {
                 // Check for image in clipboard first
-                const items = e.clipboardData?.items;
+                const items = e.clipboardData?.items
                 if (items) {
                   for (const item of items) {
-                    if (item.type.startsWith("image/")) {
-                      e.preventDefault();
-                      const file = item.getAsFile();
+                    if (item.type.startsWith('image/')) {
+                      e.preventDefault()
+                      const file = item.getAsFile()
                       if (file) {
-                        processImageFile(file);
+                        processImageFile(file)
                       }
-                      return;
+                      return
                     }
                   }
                 }
 
                 // Handle text paste
-                e.preventDefault();
-                const pastedText = e.clipboardData.getData('text/plain');
+                e.preventDefault()
+                const pastedText = e.clipboardData.getData('text/plain')
                 // Clean text: remove hidden characters, normalize whitespace
                 const cleanedText = pastedText
                   .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width characters
                   .replace(/[^\S\r\n]+/g, ' ') // Normalize spaces
-                  .trim();
+                  .trim()
                 // Append pasted text to existing content instead of replacing it
-                setRawMessage((prev) => (prev ? prev + cleanedText : cleanedText));
-                setError("");
+                setRawMessage((prev) =>
+                  prev ? prev + cleanedText : cleanedText,
+                )
+                setError('')
               }}
               className="min-h-[300px] text-base font-normal resize-none"
               disabled={isProcessing || isOcrProcessing}
@@ -448,7 +509,7 @@ const Input = () => {
                   กำลังประมวลผล...
                 </>
               ) : (
-                "ประมวลผลด้วย AI"
+                'ประมวลผลด้วย AI'
               )}
             </Button>
 
@@ -489,7 +550,9 @@ const Input = () => {
         {/* Info Card */}
         <Card className="bg-accent/10 border-accent/30">
           <CardHeader>
-            <CardTitle className="text-accent text-lg">ข้อมูลที่ AI จะแยกให้อัตโนมัติ</CardTitle>
+            <CardTitle className="text-accent text-lg">
+              ข้อมูลที่ AI จะแยกให้อัตโนมัติ
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
@@ -506,7 +569,7 @@ const Input = () => {
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Input;
+export default Input

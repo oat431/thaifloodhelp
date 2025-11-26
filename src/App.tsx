@@ -1,25 +1,27 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { LiffProvider } from "./contexts/LiffContext";
-import Landing from "./pages/Landing";
-import Input from "./pages/Input";
-import SelectReports from "./pages/SelectReports";
-import Review from "./pages/Review";
-import Dashboard from "./pages/Dashboard";
-import Stats from "./pages/Stats";
-import ReportDetail from "./pages/ReportDetail";
-import Help from "./pages/Help";
-import Map from "./pages/Map";
-import Api from "./pages/Api";
-import Auth from "./pages/Auth";
-import Mission from "./pages/Mission";
-import NotFound from "./pages/NotFound";
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+
+import { Toaster as Sonner } from '@/components/ui/sonner'
+import { Toaster } from '@/components/ui/toaster'
+import { TooltipProvider } from '@/components/ui/tooltip'
+
+import Footer from './components/Footer'
+import Navbar from './components/Navbar'
+import { LiffProvider } from './contexts/LiffContext'
+import Api from './pages/Api'
+import Auth from './pages/Auth'
+import Dashboard from './pages/Dashboard'
+import Help from './pages/Help'
+import Input from './pages/Input'
+import Landing from './pages/Landing'
+import Map from './pages/Map'
+import Mission from './pages/Mission'
+import NotFound from './pages/NotFound'
+import ReportDetail from './pages/ReportDetail'
+import Review from './pages/Review'
+import SelectReports from './pages/SelectReports'
+import Stats from './pages/Stats'
 
 // Configure QueryClient with optimized defaults
 const queryClient = new QueryClient({
@@ -36,16 +38,22 @@ const queryClient = new QueryClient({
       retry: false,
     },
   },
-});
+})
 
 const AppContent = () => {
-  const location = useLocation();
-  const isMapPage = location.pathname === '/map';
+  const location = useLocation()
+  const isMapPage = location.pathname === '/map'
 
   return (
-    <div className={isMapPage ? "h-screen overflow-hidden flex flex-col" : "flex flex-col min-h-screen"}>
+    <div
+      className={
+        isMapPage
+          ? 'h-screen overflow-hidden flex flex-col'
+          : 'flex flex-col min-h-screen'
+      }
+    >
       <Navbar />
-      <div className={isMapPage ? "flex-1 overflow-hidden" : "flex-1"}>
+      <div className={isMapPage ? 'flex-1 overflow-hidden' : 'flex-1'}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
@@ -65,8 +73,8 @@ const AppContent = () => {
       </div>
       {!isMapPage && <Footer />}
     </div>
-  );
-};
+  )
+}
 
 const App = () => (
   <LiffProvider>
@@ -81,6 +89,6 @@ const App = () => (
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </LiffProvider>
-);
+)
 
-export default App;
+export default App

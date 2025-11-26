@@ -1,9 +1,9 @@
-import MissionSections from "@/components/MissionSections";
+import MissionSections from '@/components/MissionSections'
 
 const Mission = () => (
   <div className="min-h-screen bg-background">
     <MissionSections />
   </div>
-);
+)
 
-export default Mission;
+export default Mission

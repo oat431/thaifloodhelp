@@ -1,14 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
-import { ReactNode } from "react";
+import { LucideIcon } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface StatsCardProps {
-  title: string;
-  value: string | number;
-  icon: LucideIcon;
-  description?: string;
-  className?: string;
-  iconClassName?: string;
+  title: string
+  value: string | number
+  icon: LucideIcon
+  description?: string
+  className?: string
+  iconClassName?: string
 }
 
 export const StatsCard = ({
@@ -16,8 +16,8 @@ export const StatsCard = ({
   value,
   icon: Icon,
   description,
-  className = "",
-  iconClassName = "text-muted-foreground"
+  className = '',
+  iconClassName = 'text-muted-foreground',
 }: StatsCardProps) => {
   return (
     <Card className={className}>
@@ -32,5 +32,5 @@ export const StatsCard = ({
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}

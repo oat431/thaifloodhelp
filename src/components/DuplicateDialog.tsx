@@ -1,3 +1,9 @@
+import { AlertTriangle, CheckCircle } from 'lucide-react'
+
+import { PhoneList } from '@/components/PhoneList'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -5,28 +11,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle } from "lucide-react";
-import { PhoneList } from "@/components/PhoneList";
+} from '@/components/ui/dialog'
 
 interface DuplicateReport {
-  id: string;
-  name: string;
-  address: string;
-  phone: string[];
-  raw_message: string;
-  similarity: number;
+  id: string
+  name: string
+  address: string
+  phone: string[]
+  raw_message: string
+  similarity: number
 }
 
 interface DuplicateDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  duplicates: DuplicateReport[];
-  onSaveAnyway: () => void;
-  onCancel: () => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  duplicates: DuplicateReport[]
+  onSaveAnyway: () => void
+  onCancel: () => void
 }
 
 export const DuplicateDialog = ({
@@ -64,14 +65,16 @@ export const DuplicateDialog = ({
                         {Math.round(duplicate.similarity * 100)}% คล้ายกัน
                       </Badge>
                     </div>
-                    
+
                     {duplicate.address && (
                       <div className="text-sm">
                         <span className="font-medium">ที่อยู่:</span>{' '}
-                        <span className="text-muted-foreground">{duplicate.address}</span>
+                        <span className="text-muted-foreground">
+                          {duplicate.address}
+                        </span>
                       </div>
                     )}
-                    
+
                     {duplicate.phone && duplicate.phone.length > 0 && (
                       <div className="text-sm">
                         <span className="font-medium">เบอร์:</span>{' '}
@@ -103,5 +106,5 @@ export const DuplicateDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}

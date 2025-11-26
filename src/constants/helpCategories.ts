@@ -11,15 +11,15 @@ export const HELP_CATEGORIES = [
   { id: 'evacuation', label: 'อพยพ', icon: '🚁' },
   { id: 'missing', label: 'คนหาย', icon: '🔍' },
   { id: 'clothes', label: 'เสื้อผ้า', icon: '👕' },
-] as const;
+] as const
 
 export const STATUS_OPTIONS = [
   { value: 'pending', label: 'รอความช่วยเหลือ', color: 'yellow' },
   { value: 'processed', label: 'กำลังช่วยเหลือ', color: 'blue' },
   { value: 'completed', label: 'ช่วยเหลือเสร็จสิ้น', color: 'green' },
-] as const;
+] as const
 
-export const URGENCY_LEVELS = [1, 2, 3, 4, 5] as const;
+export const URGENCY_LEVELS = [1, 2, 3, 4, 5] as const
 
 export const URGENCY_COLORS = {
   1: '#94a3b8',
@@ -27,4 +27,4 @@ export const URGENCY_COLORS = {
   3: '#fbbf24',
   4: '#fb923c',
   5: '#ef4444',
-} as const;
+} as const

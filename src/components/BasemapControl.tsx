@@ -1,16 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
-import { Layers } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { BASEMAP_OPTIONS } from '@/types/map';
+import { Layers } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { BASEMAP_OPTIONS } from '@/types/map'
 
 interface BasemapControlProps {
-  selectedBasemap: string;
-  onBasemapChange: (basemapId: string) => void;
-  showFloodLayer: boolean;
-  onFloodLayerToggle: (show: boolean) => void;
+  selectedBasemap: string
+  onBasemapChange: (basemapId: string) => void
+  showFloodLayer: boolean
+  onFloodLayerToggle: (show: boolean) => void
 }
 
 const BasemapControl = ({
@@ -19,8 +20,8 @@ const BasemapControl = ({
   showFloodLayer,
   onFloodLayerToggle,
 }: BasemapControlProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
 
   // Close when clicking outside
   useEffect(() => {
@@ -30,18 +31,18 @@ const BasemapControl = ({
         cardRef.current &&
         !cardRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
-    };
+    }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   return (
     <div ref={cardRef} className="fixed top-20 right-4 z-[1000]">
@@ -62,8 +63,8 @@ const BasemapControl = ({
               <button
                 key={basemap.id}
                 onClick={() => {
-                  onBasemapChange(basemap.id);
-                  setIsOpen(false);
+                  onBasemapChange(basemap.id)
+                  setIsOpen(false)
                 }}
                 className={`w-full text-left text-sm px-3 py-2 rounded transition-colors ${
                   selectedBasemap === basemap.id
@@ -82,7 +83,9 @@ const BasemapControl = ({
               <Checkbox
                 id="flood-layer"
                 checked={showFloodLayer}
-                onCheckedChange={(checked) => onFloodLayerToggle(checked === true)}
+                onCheckedChange={(checked) =>
+                  onFloodLayerToggle(checked === true)
+                }
               />
               <Label
                 htmlFor="flood-layer"
@@ -95,7 +98,7 @@ const BasemapControl = ({
         </Card>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default BasemapControl;
+export default BasemapControl

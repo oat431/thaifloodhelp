@@ -1,20 +1,19 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, AlertCircle, FileText, LogIn, Bell, AlertTriangle, Loader2 } from "lucide-react";
-import { DraggableMap } from "@/components/DraggableMap";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { formatPhoneNumber } from "@/lib/utils";
-import { useLiff } from "@/contexts/LiffContext";
-import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  Bell,
+  FileText,
+  Loader2,
+  LogIn,
+  Save,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+
+import { DraggableMap } from '@/components/DraggableMap'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,121 +23,136 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { useAuth } from '@/contexts/AuthContext'
+import { useLiff } from '@/contexts/LiffContext'
+import { supabase } from '@/integrations/supabase/client'
+import { formatPhoneNumber } from '@/lib/utils'
 
 interface ExtractedData {
-  name: string;
-  lastname: string;
-  raw_message: string;
-  reporter_name: string;
-  last_contact_at: string;
-  address: string;
-  location_lat: string;
-  location_long: string;
-  map_link: string;
-  phone: string[];
-  number_of_adults: number;
-  number_of_children: number;
-  number_of_seniors: number;
-  number_of_patients: number;
-  number_of_infants: number;
-  health_condition: string;
-  help_needed: string;
-  help_categories: string[];
-  additional_info: string;
-  urgency_level: number;
+  name: string
+  lastname: string
+  raw_message: string
+  reporter_name: string
+  last_contact_at: string
+  address: string
+  location_lat: string
+  location_long: string
+  map_link: string
+  phone: string[]
+  number_of_adults: number
+  number_of_children: number
+  number_of_seniors: number
+  number_of_patients: number
+  number_of_infants: number
+  health_condition: string
+  help_needed: string
+  help_categories: string[]
+  additional_info: string
+  urgency_level: number
 }
 
 const Review = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState<ExtractedData | null>(null);
-  const [reports, setReports] = useState<ExtractedData[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
-  const [phoneInput, setPhoneInput] = useState("");
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const { isLoggedIn, profile } = useLiff();
-  const { user } = useAuth();
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState<ExtractedData | null>(null)
+  const [reports, setReports] = useState<ExtractedData[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+  const [phoneInput, setPhoneInput] = useState('')
+  const [showLoginDialog, setShowLoginDialog] = useState(false)
+  const { isLoggedIn, profile } = useLiff()
+  const { user } = useAuth()
 
   useEffect(() => {
     // Check if there's a pending review from login redirect
-    const pendingReview = sessionStorage.getItem('pendingReview');
+    const pendingReview = sessionStorage.getItem('pendingReview')
     if (pendingReview) {
-      const { formData: savedFormData, reports: savedReports, currentIndex: savedIndex, phoneInput: savedPhoneInput } = JSON.parse(pendingReview);
-      setFormData(savedFormData);
-      setReports(savedReports);
-      setCurrentIndex(savedIndex);
-      setPhoneInput(savedPhoneInput);
-      sessionStorage.removeItem('pendingReview');
-      return;
+      const {
+        formData: savedFormData,
+        reports: savedReports,
+        currentIndex: savedIndex,
+        phoneInput: savedPhoneInput,
+      } = JSON.parse(pendingReview)
+      setFormData(savedFormData)
+      setReports(savedReports)
+      setCurrentIndex(savedIndex)
+      setPhoneInput(savedPhoneInput)
+      sessionStorage.removeItem('pendingReview')
+      return
     }
 
-    const extractedData = location.state?.extractedData;
-    const extractedReports = location.state?.reports;
-    
+    const extractedData = location.state?.extractedData
+    const extractedReports = location.state?.reports
+
     if (extractedReports && extractedReports.length > 0) {
       // Multiple reports mode
-      setReports(extractedReports);
-      setFormData(extractedReports[0]);
-      setPhoneInput(extractedReports[0].phone?.join(', ') || '');
+      setReports(extractedReports)
+      setFormData(extractedReports[0])
+      setPhoneInput(extractedReports[0].phone?.join(', ') || '')
     } else if (extractedData) {
       // Single report mode
-      setReports([extractedData]);
-      setFormData(extractedData);
-      setPhoneInput(extractedData.phone?.join(', ') || '');
+      setReports([extractedData])
+      setFormData(extractedData)
+      setPhoneInput(extractedData.phone?.join(', ') || '')
     } else {
-      toast.error('ไม่พบข้อมูล', { description: 'กรุณากรอกข้อมูลใหม่' });
-      navigate('/');
+      toast.error('ไม่พบข้อมูล', { description: 'กรุณากรอกข้อมูลใหม่' })
+      navigate('/')
     }
-  }, [location, navigate]);
+  }, [location, navigate])
 
   const checkForDuplicates = async (rawMessage: string) => {
     try {
       // Generate embedding for the raw message
-      const { data: embeddingData, error: embeddingError } = await supabase.functions.invoke(
-        'generate-embedding',
-        { body: { text: rawMessage } }
-      );
+      const { data: embeddingData, error: embeddingError } =
+        await supabase.functions.invoke('generate-embedding', {
+          body: { text: rawMessage },
+        })
 
-      if (embeddingError) throw embeddingError;
+      if (embeddingError) throw embeddingError
 
       // Check for duplicates
-      const { data: duplicateData, error: duplicateError } = await supabase.functions.invoke(
-        'check-duplicates',
-        { body: { embedding: embeddingData.embedding, threshold: 0.85 } }
-      );
+      const { data: duplicateData, error: duplicateError } =
+        await supabase.functions.invoke('check-duplicates', {
+          body: { embedding: embeddingData.embedding, threshold: 0.85 },
+        })
 
-      if (duplicateError) throw duplicateError;
+      if (duplicateError) throw duplicateError
 
-      return duplicateData.duplicates || [];
+      return duplicateData.duplicates || []
     } catch (err) {
-      console.error('Error checking duplicates:', err);
+      console.error('Error checking duplicates:', err)
       // On error, return empty array to proceed with save
-      return [];
+      return []
     }
-  };
+  }
 
   const performSave = async () => {
-    if (!formData) return;
+    if (!formData) return
 
-    setIsSaving(true);
+    setIsSaving(true)
 
     try {
       // Parse and format phone numbers
       const phones = phoneInput
         .split(',')
-        .map(p => p.trim())
-        .filter(p => p.length > 0)
-        .map(p => formatPhoneNumber(p));
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0)
+        .map((p) => formatPhoneNumber(p))
 
       // Validate and parse last_contact_at - only accept valid datetime format
-      let validLastContact = null;
+      let validLastContact = null
       if (formData.last_contact_at && formData.last_contact_at.trim()) {
-        const parsed = new Date(formData.last_contact_at);
+        const parsed = new Date(formData.last_contact_at)
         if (!isNaN(parsed.getTime())) {
-          validLastContact = formData.last_contact_at;
+          validLastContact = formData.last_contact_at
         }
       }
 
@@ -146,19 +160,26 @@ const Review = () => {
       // 1. Existing lat/long
       // 2. Parse map_link if present
       // 3. Geocode address if present
-      let finalLat = formData.location_lat ? parseFloat(formData.location_lat) : null;
-      let finalLng = formData.location_long ? parseFloat(formData.location_long) : null;
-      let finalMapLink = formData.map_link || null;
+      const finalLat = formData.location_lat
+        ? parseFloat(formData.location_lat)
+        : null
+      const finalLng = formData.location_long
+        ? parseFloat(formData.location_long)
+        : null
+      const finalMapLink = formData.map_link || null
 
       // Generate embedding for the report
-      const { data: embeddingData, error: embeddingError } = await supabase.functions.invoke(
-        'generate-embedding',
-        { body: { text: formData.raw_message } }
-      );
+      const { data: embeddingData, error: embeddingError } =
+        await supabase.functions.invoke('generate-embedding', {
+          body: { text: formData.raw_message },
+        })
 
       const dataToSave = {
         ...formData,
-        name: formData.name && formData.name !== '-' ? formData.name : 'ไม่ระบุชื่อ',
+        name:
+          formData.name && formData.name !== '-'
+            ? formData.name
+            : 'ไม่ระบุชื่อ',
         phone: phones,
         location_lat: finalLat,
         location_long: finalLng,
@@ -171,119 +192,123 @@ const Review = () => {
         // Add LINE user data if logged in
         line_user_id: isLoggedIn && profile ? profile.userId : null,
         line_display_name: isLoggedIn && profile ? profile.displayName : null,
-      };
+      }
 
-      const { error } = await supabase.from('reports').insert([dataToSave]);
+      const { error } = await supabase.from('reports').insert([dataToSave])
 
       if (error) {
-        throw error;
+        throw error
       }
 
       // Check if there are more reports to review
       if (currentIndex < reports.length - 1) {
         // Move to next report
-        const nextIndex = currentIndex + 1;
-        setCurrentIndex(nextIndex);
-        setFormData(reports[nextIndex]);
-        setPhoneInput(reports[nextIndex].phone?.join(', ') || '');
-        
+        const nextIndex = currentIndex + 1
+        setCurrentIndex(nextIndex)
+        setFormData(reports[nextIndex])
+        setPhoneInput(reports[nextIndex].phone?.join(', ') || '')
+
         toast.success('ขอบคุณค่ะ ข้อมูลได้ถูกบันทึกแล้ว', {
-          description: `เหลืออีก ${reports.length - nextIndex} รายการ`
-        });
+          description: `เหลืออีก ${reports.length - nextIndex} รายการ`,
+        })
       } else {
         // All done
         toast.success('ขอบคุณค่ะ ข้อมูลได้ถูกบันทึกแล้ว', {
-          description: `บันทึกทั้งหมด ${reports.length} รายการเรียบร้อย`
-        });
-        navigate('/dashboard');
+          description: `บันทึกทั้งหมด ${reports.length} รายการเรียบร้อย`,
+        })
+        navigate('/dashboard')
       }
     } catch (err) {
-      console.error('Save error:', err);
+      console.error('Save error:', err)
       toast.error('ไม่สามารถบันทึกได้', {
-        description: err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง'
-      });
+        description:
+          err instanceof Error ? err.message : 'กรุณาลองใหม่อีกครั้ง',
+      })
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleSave = async () => {
-    if (!formData) return;
+    if (!formData) return
 
     // Check if user is logged in (either via LINE or email/password)
-    const isUserLoggedIn = isLoggedIn || user;
+    const isUserLoggedIn = isLoggedIn || user
 
     if (!isUserLoggedIn) {
       // Show login dialog
-      setShowLoginDialog(true);
-      return;
+      setShowLoginDialog(true)
+      return
     }
 
     // Proceed with save
-    await proceedWithSave();
-  };
+    await proceedWithSave()
+  }
 
   const proceedWithSave = async () => {
-    if (!formData) return;
+    if (!formData) return
 
-    setIsSaving(true);
+    setIsSaving(true)
 
     try {
       // Check for duplicates first
-      const foundDuplicates = await checkForDuplicates(formData.raw_message);
+      const foundDuplicates = await checkForDuplicates(formData.raw_message)
 
       if (foundDuplicates.length > 0) {
         // Duplicate found - update the existing record's updated_at
-        console.log('Duplicate detected, updating existing record timestamp');
-        
-        const duplicateId = foundDuplicates[0].id;
+        console.log('Duplicate detected, updating existing record timestamp')
+
+        const duplicateId = foundDuplicates[0].id
         const { error: updateError } = await supabase
           .from('reports')
           .update({ updated_at: new Date().toISOString() })
-          .eq('id', duplicateId);
+          .eq('id', duplicateId)
 
         if (updateError) {
-          console.error('Error updating duplicate:', updateError);
+          console.error('Error updating duplicate:', updateError)
         }
-        
+
         // Move to next report if in multi-report mode
         if (reports.length > 1 && currentIndex < reports.length - 1) {
-          setCurrentIndex(currentIndex + 1);
-          setFormData(reports[currentIndex + 1]);
-          setPhoneInput(reports[currentIndex + 1].phone?.join(', ') || '');
-          toast.success('ขอบคุณค่ะ ข้อมูลได้ถูกบันทึกแล้ว');
+          setCurrentIndex(currentIndex + 1)
+          setFormData(reports[currentIndex + 1])
+          setPhoneInput(reports[currentIndex + 1].phone?.join(', ') || '')
+          toast.success('ขอบคุณค่ะ ข้อมูลได้ถูกบันทึกแล้ว')
         } else {
           // Last report or single report
-          toast.success('ขอบคุณค่ะ ข้อมูลได้ถูกบันทึกแล้ว');
-          navigate('/dashboard');
+          toast.success('ขอบคุณค่ะ ข้อมูลได้ถูกบันทึกแล้ว')
+          navigate('/dashboard')
         }
       } else {
         // No duplicate - save the record
-        await performSave();
+        await performSave()
       }
     } catch (err) {
-      console.error('Error during save:', err);
+      console.error('Error during save:', err)
       toast.error('เกิดข้อผิดพลาด', {
-        description: 'กรุณาลองใหม่อีกครั้ง'
-      });
+        description: 'กรุณาลองใหม่อีกครั้ง',
+      })
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleSaveWithoutLogin = async () => {
-    setShowLoginDialog(false);
-    await proceedWithSave();
-  };
+    setShowLoginDialog(false)
+    await proceedWithSave()
+  }
 
   const handleGoToLogin = () => {
     // Save current state to navigate back after login
-    sessionStorage.setItem('pendingReview', JSON.stringify({ formData, reports, currentIndex, phoneInput }));
-    navigate('/auth', { state: { from: '/review' } });
-  };
+    sessionStorage.setItem(
+      'pendingReview',
+      JSON.stringify({ formData, reports, currentIndex, phoneInput }),
+    )
+    navigate('/auth', { state: { from: '/review' } })
+  }
 
   if (!formData) {
-    return null;
+    return null
   }
 
   const urgencyColors = [
@@ -292,16 +317,12 @@ const Review = () => {
     'urgency-badge-3',
     'urgency-badge-4',
     'urgency-badge-5',
-  ];
+  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           กลับไปกรอกใหม่
         </Button>
@@ -340,291 +361,398 @@ const Review = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนบันทึก คุณสามารถแก้ไขได้ทุกช่อง
-              </AlertDescription>
-            </Alert>
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนบันทึก
+                  คุณสามารถแก้ไขได้ทุกช่อง
+                </AlertDescription>
+              </Alert>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="reporter">ผู้รายงาน/แจ้งเรื่อง</Label>
-                <Input
-                  id="reporter"
-                  value={formData.reporter_name || '-'}
-                  onChange={(e) => setFormData({ ...formData, reporter_name: e.target.value })}
-                  placeholder="-"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastContact">วันเวลาติดต่อล่าสุด</Label>
-                <Input
-                  id="lastContact"
-                  type="datetime-local"
-                  value={formData.last_contact_at || ''}
-                  onChange={(e) => setFormData({ ...formData, last_contact_at: e.target.value })}
-                  placeholder="-"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">ชื่อ</Label>
-                <Input
-                  id="name"
-                  value={formData.name || '-'}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="-"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastname">นามสกุล</Label>
-                <Input
-                  id="lastname"
-                  value={formData.lastname}
-                  onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">ที่อยู่</Label>
-              <Textarea
-                id="address"
-                value={formData.address || '-'}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                rows={3}
-                placeholder="-"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">เบอร์โทรศัพท์ (คั่นด้วยจุลภาค)</Label>
-              <Input
-                id="phone"
-                value={phoneInput || '-'}
-                onChange={(e) => setPhoneInput(e.target.value)}
-                placeholder="-"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="map_link">ตำแหน่งบนแผนที่</Label>
-                {!formData.raw_message?.match(/(maps\.google\.com|goo\.gl|google\.com\/maps|maps\.app\.goo\.gl)/i) && (
-                  <Badge variant="destructive" className="text-xs">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    ใช้ AI สกัดพิกัด อาจมีความคลาดเคลื่อน
-                  </Badge>
-                )}
-              </div>
-              {formData.location_lat && formData.location_long && 
-               formData.location_lat !== '-' && formData.location_long !== '-' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <div className="text-xs text-muted-foreground mb-2 bg-muted/50 p-2 rounded">
-                    💡 คลิกบนแผนที่หรือลากหมุดเพื่อปรับตำแหน่ง
-                  </div>
-                  <DraggableMap
-                    lat={parseFloat(formData.location_lat)}
-                    lng={parseFloat(formData.location_long)}
-                    onPositionChange={(lat, lng) => {
+                  <Label htmlFor="reporter">ผู้รายงาน/แจ้งเรื่อง</Label>
+                  <Input
+                    id="reporter"
+                    value={formData.reporter_name || '-'}
+                    onChange={(e) =>
                       setFormData({
                         ...formData,
-                        location_lat: lat.toFixed(7),
-                        location_long: lng.toFixed(7),
-                        map_link: `https://maps.google.com/?q=${lat},${lng}`
-                      });
-                    }}
-                  />
-                  <Input
-                    id="map_link"
-                    value={formData.map_link || '-'}
-                    onChange={(e) => setFormData({ ...formData, map_link: e.target.value })}
-                    placeholder="https://maps.google.com/... หรือ https://goo.gl/maps/..."
-                    className="text-xs"
-                  />
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
-                  ยังไม่มีพิกัด - กรุณากรอกละติจูดและลองติจูดเพื่อแสดงแผนที่
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <Label>จำนวนผู้ประสบภัย</Label>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="adults" className="text-sm text-muted-foreground">ผู้ใหญ่</Label>
-                  <Input
-                    id="adults"
-                    type="number"
-                    min="0"
-                    value={formData.number_of_adults}
-                    onChange={(e) => setFormData({ ...formData, number_of_adults: parseInt(e.target.value) || 0 })}
+                        reporter_name: e.target.value,
+                      })
+                    }
+                    placeholder="-"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="children" className="text-sm text-muted-foreground">เด็ก</Label>
+                  <Label htmlFor="lastContact">วันเวลาติดต่อล่าสุด</Label>
                   <Input
-                    id="children"
-                    type="number"
-                    min="0"
-                    value={formData.number_of_children}
-                    onChange={(e) => setFormData({ ...formData, number_of_children: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="infants" className="text-sm text-muted-foreground">ทารก</Label>
-                  <Input
-                    id="infants"
-                    type="number"
-                    min="0"
-                    value={formData.number_of_infants || 0}
-                    onChange={(e) => setFormData({ ...formData, number_of_infants: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="seniors" className="text-sm text-muted-foreground">ผู้สูงอายุ</Label>
-                  <Input
-                    id="seniors"
-                    type="number"
-                    min="0"
-                    value={formData.number_of_seniors}
-                    onChange={(e) => setFormData({ ...formData, number_of_seniors: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="patients" className="text-sm text-muted-foreground">ผู้ป่วย</Label>
-                  <Input
-                    id="patients"
-                    type="number"
-                    min="0"
-                    value={formData.number_of_patients || 0}
-                    onChange={(e) => setFormData({ ...formData, number_of_patients: parseInt(e.target.value) || 0 })}
+                    id="lastContact"
+                    type="datetime-local"
+                    value={formData.last_contact_at || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        last_contact_at: e.target.value,
+                      })
+                    }
+                    placeholder="-"
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="health">ภาวะสุขภาพ</Label>
-              <Textarea
-                id="health"
-                value={formData.health_condition || '-'}
-                onChange={(e) => setFormData({ ...formData, health_condition: e.target.value })}
-                rows={2}
-                placeholder="-"
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">ชื่อ</Label>
+                  <Input
+                    id="name"
+                    value={formData.name || '-'}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    placeholder="-"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label>ประเภทความช่วยเหลือที่ต้องการ</Label>
-              <div className="grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg">
-                {[
-                  { id: 'drowning', label: 'จมน้ำ' },
-                  { id: 'trapped', label: 'ติดขัง' },
-                  { id: 'unreachable', label: 'ติดต่อไม่ได้' },
-                  { id: 'water', label: 'ขาดน้ำดื่ม' },
-                  { id: 'food', label: 'ขาดอาหาร' },
-                  { id: 'electricity', label: 'ขาดไฟฟ้า' },
-                  { id: 'shelter', label: 'ต้องการที่พักพิง' },
-                  { id: 'medical', label: 'คนเจ็บ/ต้องการรักษา' },
-                  { id: 'medicine', label: 'ขาดยา' },
-                  { id: 'evacuation', label: 'ต้องการอพยพ' },
-                  { id: 'missing', label: 'คนหาย' },
-                  { id: 'clothes', label: 'เสื้อผ้า' },
-                  { id: 'other', label: 'อื่นๆ' },
-                ].map((category) => (
-                  <div key={category.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={category.id}
-                      checked={formData.help_categories?.includes(category.id) || false}
-                      onCheckedChange={(checked) => {
-                        const current = formData.help_categories || [];
-                        const updated = checked
-                          ? [...current, category.id]
-                          : current.filter((c) => c !== category.id);
-                        setFormData({ ...formData, help_categories: updated });
+                <div className="space-y-2">
+                  <Label htmlFor="lastname">นามสกุล</Label>
+                  <Input
+                    id="lastname"
+                    value={formData.lastname}
+                    onChange={(e) =>
+                      setFormData({ ...formData, lastname: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">ที่อยู่</Label>
+                <Textarea
+                  id="address"
+                  value={formData.address || '-'}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="-"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">เบอร์โทรศัพท์ (คั่นด้วยจุลภาค)</Label>
+                <Input
+                  id="phone"
+                  value={phoneInput || '-'}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  placeholder="-"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="map_link">ตำแหน่งบนแผนที่</Label>
+                  {!formData.raw_message?.match(
+                    /(maps\.google\.com|goo\.gl|google\.com\/maps|maps\.app\.goo\.gl)/i,
+                  ) && (
+                    <Badge variant="destructive" className="text-xs">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      ใช้ AI สกัดพิกัด อาจมีความคลาดเคลื่อน
+                    </Badge>
+                  )}
+                </div>
+                {formData.location_lat &&
+                formData.location_long &&
+                formData.location_lat !== '-' &&
+                formData.location_long !== '-' ? (
+                  <div className="space-y-2">
+                    <div className="text-xs text-muted-foreground mb-2 bg-muted/50 p-2 rounded">
+                      💡 คลิกบนแผนที่หรือลากหมุดเพื่อปรับตำแหน่ง
+                    </div>
+                    <DraggableMap
+                      lat={parseFloat(formData.location_lat)}
+                      lng={parseFloat(formData.location_long)}
+                      onPositionChange={(lat, lng) => {
+                        setFormData({
+                          ...formData,
+                          location_lat: lat.toFixed(7),
+                          location_long: lng.toFixed(7),
+                          map_link: `https://maps.google.com/?q=${lat},${lng}`,
+                        })
                       }}
                     />
-                    <label
-                      htmlFor={category.id}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {category.label}
-                    </label>
+                    <Input
+                      id="map_link"
+                      value={formData.map_link || '-'}
+                      onChange={(e) =>
+                        setFormData({ ...formData, map_link: e.target.value })
+                      }
+                      placeholder="https://maps.google.com/... หรือ https://goo.gl/maps/..."
+                      className="text-xs"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="help">รายละเอียดความช่วยเหลือเพิ่มเติม</Label>
-              <Textarea
-                id="help"
-                value={formData.help_needed || '-'}
-                onChange={(e) => setFormData({ ...formData, help_needed: e.target.value })}
-                rows={2}
-                placeholder="-"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="additional">ข้อมูลเพิ่มเติม</Label>
-              <Textarea
-                id="additional"
-                value={formData.additional_info || '-'}
-                onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
-                rows={3}
-                placeholder="-"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="urgency">ระดับความเร่งด่วน</Label>
-              <select
-                id="urgency"
-                value={formData.urgency_level}
-                onChange={(e) => setFormData({ ...formData, urgency_level: parseInt(e.target.value) })}
-                className="w-full p-2 border rounded-md bg-background"
-              >
-                <option value="1">1 - ยังไม่โดนน้ำ / แจ้งเตือน</option>
-                <option value="2">2 - ผู้ใหญ่ทั้งหมด น้ำท่วมชั้นล่าง (ไม่มีเด็ก/ผู้สูงอายุ/ทารก/ผู้ป่วย)</option>
-                <option value="3">3 - มีเด็ก หรือผู้สูงอายุ หรือน้ำถึงชั้นสอง</option>
-                <option value="4">4 - เด็กเล็กมาก หรือทารก หรือมีคนไข้/ป่วยติดเตียง หรือคนช่วยตัวเองไม่ได้</option>
-                <option value="5">5 - วิกฤต: น้ำถึงหลังคา/ติดบนหลังคา ทารกในอันตราย คนไข้อาการหนัก มีคนตาย</option>
-              </select>
-            </div>
-
-            <div className="flex gap-4">
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                size="lg"
-                className="flex-1"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    กำลังบันทึก...
-                  </>
                 ) : (
-                  <>
-                    <Save className="mr-2 h-5 w-5" />
-                    ยืนยันและบันทึกข้อมูล
-                  </>
+                  <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
+                    ยังไม่มีพิกัด - กรุณากรอกละติจูดและลองติจูดเพื่อแสดงแผนที่
+                  </div>
                 )}
-              </Button>
-            </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>จำนวนผู้ประสบภัย</Label>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="adults"
+                      className="text-sm text-muted-foreground"
+                    >
+                      ผู้ใหญ่
+                    </Label>
+                    <Input
+                      id="adults"
+                      type="number"
+                      min="0"
+                      value={formData.number_of_adults}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          number_of_adults: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="children"
+                      className="text-sm text-muted-foreground"
+                    >
+                      เด็ก
+                    </Label>
+                    <Input
+                      id="children"
+                      type="number"
+                      min="0"
+                      value={formData.number_of_children}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          number_of_children: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="infants"
+                      className="text-sm text-muted-foreground"
+                    >
+                      ทารก
+                    </Label>
+                    <Input
+                      id="infants"
+                      type="number"
+                      min="0"
+                      value={formData.number_of_infants || 0}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          number_of_infants: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="seniors"
+                      className="text-sm text-muted-foreground"
+                    >
+                      ผู้สูงอายุ
+                    </Label>
+                    <Input
+                      id="seniors"
+                      type="number"
+                      min="0"
+                      value={formData.number_of_seniors}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          number_of_seniors: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="patients"
+                      className="text-sm text-muted-foreground"
+                    >
+                      ผู้ป่วย
+                    </Label>
+                    <Input
+                      id="patients"
+                      type="number"
+                      min="0"
+                      value={formData.number_of_patients || 0}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          number_of_patients: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="health">ภาวะสุขภาพ</Label>
+                <Textarea
+                  id="health"
+                  value={formData.health_condition || '-'}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      health_condition: e.target.value,
+                    })
+                  }
+                  rows={2}
+                  placeholder="-"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>ประเภทความช่วยเหลือที่ต้องการ</Label>
+                <div className="grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg">
+                  {[
+                    { id: 'drowning', label: 'จมน้ำ' },
+                    { id: 'trapped', label: 'ติดขัง' },
+                    { id: 'unreachable', label: 'ติดต่อไม่ได้' },
+                    { id: 'water', label: 'ขาดน้ำดื่ม' },
+                    { id: 'food', label: 'ขาดอาหาร' },
+                    { id: 'electricity', label: 'ขาดไฟฟ้า' },
+                    { id: 'shelter', label: 'ต้องการที่พักพิง' },
+                    { id: 'medical', label: 'คนเจ็บ/ต้องการรักษา' },
+                    { id: 'medicine', label: 'ขาดยา' },
+                    { id: 'evacuation', label: 'ต้องการอพยพ' },
+                    { id: 'missing', label: 'คนหาย' },
+                    { id: 'clothes', label: 'เสื้อผ้า' },
+                    { id: 'other', label: 'อื่นๆ' },
+                  ].map((category) => (
+                    <div
+                      key={category.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        id={category.id}
+                        checked={
+                          formData.help_categories?.includes(category.id) ||
+                          false
+                        }
+                        onCheckedChange={(checked) => {
+                          const current = formData.help_categories || []
+                          const updated = checked
+                            ? [...current, category.id]
+                            : current.filter((c) => c !== category.id)
+                          setFormData({ ...formData, help_categories: updated })
+                        }}
+                      />
+                      <label
+                        htmlFor={category.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {category.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="help">รายละเอียดความช่วยเหลือเพิ่มเติม</Label>
+                <Textarea
+                  id="help"
+                  value={formData.help_needed || '-'}
+                  onChange={(e) =>
+                    setFormData({ ...formData, help_needed: e.target.value })
+                  }
+                  rows={2}
+                  placeholder="-"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="additional">ข้อมูลเพิ่มเติม</Label>
+                <Textarea
+                  id="additional"
+                  value={formData.additional_info || '-'}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      additional_info: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  placeholder="-"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="urgency">ระดับความเร่งด่วน</Label>
+                <select
+                  id="urgency"
+                  value={formData.urgency_level}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      urgency_level: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full p-2 border rounded-md bg-background"
+                >
+                  <option value="1">1 - ยังไม่โดนน้ำ / แจ้งเตือน</option>
+                  <option value="2">
+                    2 - ผู้ใหญ่ทั้งหมด น้ำท่วมชั้นล่าง
+                    (ไม่มีเด็ก/ผู้สูงอายุ/ทารก/ผู้ป่วย)
+                  </option>
+                  <option value="3">
+                    3 - มีเด็ก หรือผู้สูงอายุ หรือน้ำถึงชั้นสอง
+                  </option>
+                  <option value="4">
+                    4 - เด็กเล็กมาก หรือทารก หรือมีคนไข้/ป่วยติดเตียง
+                    หรือคนช่วยตัวเองไม่ได้
+                  </option>
+                  <option value="5">
+                    5 - วิกฤต: น้ำถึงหลังคา/ติดบนหลังคา ทารกในอันตราย
+                    คนไข้อาการหนัก มีคนตาย
+                  </option>
+                </select>
+              </div>
+
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  size="lg"
+                  className="flex-1"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      กำลังบันทึก...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-5 w-5" />
+                      ยืนยันและบันทึกข้อมูล
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -653,7 +781,10 @@ const Review = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel onClick={handleSaveWithoutLogin} className="sm:order-2">
+            <AlertDialogCancel
+              onClick={handleSaveWithoutLogin}
+              className="sm:order-2"
+            >
               บันทึกโดยไม่เข้าสู่ระบบ
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleGoToLogin} className="sm:order-1">
@@ -664,7 +795,7 @@ const Review = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-};
+  )
+}
 
-export default Review;
+export default Review
