@@ -71,11 +71,19 @@ const InteractiveMap = ({
 
         mapRef.current = map;
 
-        // Add OpenStreetMap tile layer
+        // Add base map layer (OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution:
-                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             maxZoom: 19,
+        }).addTo(map);
+
+        // Add GISTDA flood map overlay (WMTS) with API key
+        const gistdaApiKey = import.meta.env.VITE_GISTDA_API_KEY;
+        L.tileLayer(`https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/3days/wmts/{z}/{x}/{y}.png?api_key=${gistdaApiKey}`, {
+            attribution: '&copy; <a href="https://www.gistda.or.th">GISTDA</a>',
+            maxZoom: 19,
+            minZoom: 0,
+            opacity: 0.6, // Make flood layer semi-transparent
         }).addTo(map);
 
         // Add legend if enabled
@@ -96,6 +104,12 @@ const InteractiveMap = ({
           `
                         )
                         .join('')}
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.1);">
+            <div class="map-legend-item">
+              <div class="map-legend-color" style="border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.6);"></div>
+              <span>พื้นที่น้ำท่วม (GISTDA)</span>
+            </div>
+          </div>
         `;
                 return div;
             };
