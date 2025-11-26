@@ -143,14 +143,12 @@ const Stats = () => {
     }
   };
 
-  // Fetch reports with location for heatmap only
+  // Fetch reports for heatmap (needs help_categories, urgency_level, and people counts)
   const fetchReportsForHeatmap = async () => {
     try {
       const { data, error } = await supabase
         .from('reports')
-        .select('id, location_lat, location_long, urgency_level')
-        .not('location_lat', 'is', null)
-        .not('location_long', 'is', null);
+        .select('id, urgency_level, help_categories, number_of_adults, number_of_children, number_of_infants, number_of_seniors, number_of_patients');
 
       if (error) throw error;
       setReports(data as Report[] || []);
