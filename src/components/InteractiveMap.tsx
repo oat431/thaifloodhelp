@@ -92,33 +92,6 @@ const InteractiveMap = ({
             legend.addTo(map);
         }
 
-        // Add locate control (current location button)
-        const locateControl = (L as any).control({ position: 'topleft' });
-        locateControl.onAdd = () => {
-            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            container.innerHTML = `
-        <a href="#" title="ตำแหน่งของฉัน" style="width: 34px; height: 34px; line-height: 34px; text-align: center; font-size: 18px;">
-          📍
-        </a>
-      `;
-            container.onclick = (e) => {
-                e.preventDefault();
-                map.locate({ setView: true, maxZoom: 16 });
-            };
-            return container;
-        };
-        locateControl.addTo(map);
-
-        map.on('locationfound', (e) => {
-            L.circle(e.latlng, {
-                radius: e.accuracy / 2,
-                fillColor: '#2563EB',
-                fillOpacity: 0.2,
-                color: '#2563EB',
-                weight: 2,
-            }).addTo(map);
-        });
-
         // Cleanup on unmount
         return () => {
             if (mapRef.current) {
