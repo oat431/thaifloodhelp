@@ -86,13 +86,13 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Could not extract coordinates from map link",
         lat: null,
         lng: null,
         success: false
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (err) {
