@@ -4,6 +4,7 @@ import 'leaflet.markercluster';
 import '../styles/map.css';
 import { Report } from '@/types/report';
 import { useNavigate } from 'react-router-dom';
+import { MapPin } from 'lucide-react';
 
 // Fix for default marker icon issue with Webpack
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -149,13 +150,15 @@ const InteractiveMap = ({
             const lat = parseFloat(report.location_lat.toString());
             const lng = parseFloat(report.location_long.toString());
 
-            // Strict filter: Only locations within Thailand bounds
+            // Basic validation: must be valid numbers
+            if (isNaN(lat) || isNaN(lng)) return false;
+
+            // Filter for locations within Thailand bounds (remove obvious noise)
             // Thailand: roughly 5.6°N to 20.5°N, 97.3°E to 105.6°E
+            // Add small buffer to be less strict
             return (
-                !isNaN(lat) &&
-                !isNaN(lng) &&
-                lat >= 5.6 && lat <= 20.5 &&
-                lng >= 97.3 && lng <= 105.6
+                lat >= 5.0 && lat <= 21.0 &&
+                lng >= 97.0 && lng <= 106.0
             );
         });
 
@@ -277,7 +280,26 @@ const InteractiveMap = ({
         }
     }, [reports, navigate]);
 
-    return <div ref={mapContainerRef} className="map-container" style={{ height: '100%', width: '100%' }} />;
+    const hasValidReports = reports.some(
+        (r) => r.location_lat !== null && r.location_long !== null
+    );
+
+    return (
+        <div className="relative h-full w-full">
+            <div ref={mapContainerRef} className="map-container" style={{ height: '100%', width: '100%' }} />
+            {!hasValidReports && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm pointer-events-none">
+                    <div className="text-center p-6 bg-card rounded-lg shadow-lg">
+                        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-lg font-medium text-foreground">ไม่มีข้อมูลตำแหน่งในแผนที่</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                            ข้อมูลที่บันทึกไม่มีพิกัดละติจูด/ลองจิจูด
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default InteractiveMap;
