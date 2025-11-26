@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +27,6 @@ import {
   ChevronLeft,
   Pencil,
   Phone,
-  Share2,
   ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,20 +39,9 @@ import { EditReportDialog } from "@/components/EditReportDialog";
 import type { Report } from "@/types/report";
 import { formatCaseId, getUrgencyBadgeClass } from "@/lib/reportUtils";
 import { HELP_CATEGORIES } from "@/constants/helpCategories";
-import { useLiff } from "@/contexts/LiffContext";
 import Map from "@/components/ui/map";
 
 const Dashboard = () => {
-  const { shareTargetPicker } = useLiff();
-
-  const handleShare = async () => {
-    try {
-      await shareTargetPicker();
-      toast.success('ขอบคุณที่ช่วยแชร์ครับ');
-    } catch (err) {
-      console.error('Share error:', err);
-    }
-  };
   const navigate = useNavigate();
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
@@ -309,7 +297,8 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from('reports')
         .select('*')
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .limit(200);
 
       if (error) throw error;
 
@@ -429,15 +418,6 @@ const Dashboard = () => {
             </Button>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
-            <Button
-              variant="outline"
-              onClick={handleShare}
-              size="sm"
-              className="bg-[#06C755] hover:bg-[#05b34c] text-white border-[#06C755] hover:border-[#05b34c]"
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              แชร์ผ่าน LINE
-            </Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/map')}>
               🗺️ แผนที่
             </Button>
@@ -598,7 +578,8 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
 
-        <Card>
+        {/* Map section currently disabled due to react-leaflet context error */}
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>แผนที่ความช่วยเหลือ</CardTitle>
           </CardHeader>
@@ -607,7 +588,7 @@ const Dashboard = () => {
              {filteredReports && <Map reports={reportsWithLocations} />}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="text-sm text-muted-foreground">
@@ -775,9 +756,8 @@ const Dashboard = () => {
                     {paginatedReports.map((report) => {
                       const isExpanded = expandedRows.has(report.id);
                       return (
-                        <>
+                        <React.Fragment key={report.id}>
                           <TableRow
-                            key={report.id}
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => toggleRowExpansion(report.id)}
                           >
@@ -877,7 +857,7 @@ const Dashboard = () => {
                             </TableCell>
                           </TableRow>
                           {isExpanded && (
-                            <TableRow key={`${report.id}-expanded`}>
+                            <TableRow>
                               <TableCell colSpan={16} className="bg-muted/30 p-6">
                                 <div className="space-y-4">
                                   <div className="flex justify-end">
@@ -988,7 +968,7 @@ const Dashboard = () => {
                               </TableCell>
                             </TableRow>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </TableBody>

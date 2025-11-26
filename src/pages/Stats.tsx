@@ -34,7 +34,8 @@ const Stats = () => {
       const { data, error } = await supabase
         .from('reports')
         .select('*')
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .limit(500);
 
       if (error) throw error;
 

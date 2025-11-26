@@ -48,7 +48,8 @@ const Map = () => {
                 `)
                 .not('location_lat', 'is', null)
                 .not('location_long', 'is', null)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(1000);
 
             if (error) throw error;
             return data as Report[];

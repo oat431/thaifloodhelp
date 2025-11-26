@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, Database, BarChart3, HelpCircle, Menu, X, Code, LogIn, LogOut, User } from "lucide-react";
+import { Home, Database, BarChart3, HelpCircle, Menu, X, Code, LogIn, LogOut, User, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import logo from "@/assets/logo.png";
@@ -53,6 +53,12 @@ const Navbar = () => {
       label: "Dashboard",
       icon: BarChart3,
       description: "สถิติและรายงาน",
+    },
+    {
+      path: "/mission",
+      label: "Mission",
+      icon: Target,
+      description: "ทำไมต้อง Thai Flood Help",
     },
     {
       path: "/api",
