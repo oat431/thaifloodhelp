@@ -8,11 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, AlertCircle, Loader2, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle, Loader2, FileText, Sparkles, LogIn, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatPhoneNumber } from "@/lib/utils";
 import { useLiff } from "@/contexts/LiffContext";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 interface ExtractedData {
@@ -47,9 +58,23 @@ const Review = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
   const [isCompletingAddress, setIsCompletingAddress] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const { isLoggedIn, profile } = useLiff();
+  const { user } = useAuth();
 
   useEffect(() => {
+    // Check if there's a pending review from login redirect
+    const pendingReview = sessionStorage.getItem('pendingReview');
+    if (pendingReview) {
+      const { formData: savedFormData, reports: savedReports, currentIndex: savedIndex, phoneInput: savedPhoneInput } = JSON.parse(pendingReview);
+      setFormData(savedFormData);
+      setReports(savedReports);
+      setCurrentIndex(savedIndex);
+      setPhoneInput(savedPhoneInput);
+      sessionStorage.removeItem('pendingReview');
+      return;
+    }
+
     const extractedData = location.state?.extractedData;
     const extractedReports = location.state?.reports;
     
@@ -208,6 +233,22 @@ const Review = () => {
   const handleSave = async () => {
     if (!formData) return;
 
+    // Check if user is logged in (either via LINE or email/password)
+    const isUserLoggedIn = isLoggedIn || user;
+
+    if (!isUserLoggedIn) {
+      // Show login dialog
+      setShowLoginDialog(true);
+      return;
+    }
+
+    // Proceed with save
+    await proceedWithSave();
+  };
+
+  const proceedWithSave = async () => {
+    if (!formData) return;
+
     setIsSaving(true);
 
     try {
@@ -251,6 +292,17 @@ const Review = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSaveWithoutLogin = async () => {
+    setShowLoginDialog(false);
+    await proceedWithSave();
+  };
+
+  const handleGoToLogin = () => {
+    // Save current state to navigate back after login
+    sessionStorage.setItem('pendingReview', JSON.stringify({ formData, reports, currentIndex, phoneInput }));
+    navigate('/auth', { state: { from: '/review' } });
   };
 
   if (!formData) {
@@ -610,6 +662,40 @@ const Review = () => {
           </Card>
         </div>
       </div>
+
+      {/* Login Dialog */}
+      <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              ต้องการรับการแจ้งเตือนหรือไม่?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p className="text-base">
+                หากคุณเข้าสู่ระบบก่อนบันทึกข้อมูล คุณจะได้รับ:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                <li>การแจ้งเตือนเมื่อมีการอัปเดตข้อมูลผู้ประสบภัย</li>
+                <li>สามารถติดตามและแก้ไขข้อมูลที่คุณบันทึกได้</li>
+                <li>เข้าถึง API สำหรับการพัฒนาต่อยอด</li>
+              </ul>
+              <p className="text-sm text-muted-foreground pt-2">
+                หรือคุณสามารถบันทึกข้อมูลโดยไม่ต้องเข้าสู่ระบบได้เลย
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={handleSaveWithoutLogin} className="sm:order-2">
+              บันทึกโดยไม่เข้าสู่ระบบ
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleGoToLogin} className="sm:order-1">
+              <LogIn className="mr-2 h-4 w-4" />
+              เข้าสู่ระบบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -19,11 +20,13 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
+  const from = location.state?.from || "/";
+
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate(from);
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +83,7 @@ const Auth = () => {
         title: "เข้าสู่ระบบสำเร็จ",
       });
 
-      navigate("/");
+      navigate(from);
     } catch (error: any) {
       toast({
         title: "เกิดข้อผิดพลาด",
