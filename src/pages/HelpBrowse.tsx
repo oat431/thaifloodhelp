@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MapPin, Phone, Clock, User, HandHeart, Users, Eye, List, Upload, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -573,84 +574,97 @@ export default function HelpBrowse() {
                 ยังไม่มีรายการผู้ต้องการความช่วยเหลือ
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {helpRequests.map((request) => (
-                  <Card key={request.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <CardTitle className="text-lg">{request.title}</CardTitle>
-                        <Badge variant="destructive" className="shrink-0">เปิด</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {request.description}
-                      </p>
-                      
-                      {request.image_urls && request.image_urls.length > 0 && (
-                        <div className="flex gap-2 overflow-x-auto pb-2">
-                          {request.image_urls.map((url: string, idx: number) => (
-                            <img
-                              key={idx}
-                              src={url}
-                              alt={`รูปภาพ ${idx + 1}`}
-                              className="w-24 h-24 object-cover rounded border cursor-pointer hover:opacity-80"
-                              onClick={() => window.open(url, '_blank')}
-                            />
-                          ))}
-                        </div>
-                      )}
-                      
-                      {request.help_types && request.help_types.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {request.help_types.map((type: string) => (
-                            <Badge key={type} variant="secondary" className="text-xs">
-                              {type}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <User className="w-4 h-4" />
-                          <span>{request.contact_name}</span>
-                        </div>
-                        
-                        {request.contact_phone && request.contact_phone.length > 0 && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="w-4 h-4" />
-                            <span>{request.contact_phone.join(', ')}</span>
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">หัวข้อ</TableHead>
+                      <TableHead>รายละเอียด</TableHead>
+                      <TableHead className="w-[150px]">ประเภท</TableHead>
+                      <TableHead className="w-[150px]">ชื่อผู้ติดต่อ</TableHead>
+                      <TableHead className="w-[120px]">เบอร์โทร</TableHead>
+                      <TableHead className="w-[200px]">ที่อยู่</TableHead>
+                      <TableHead className="w-[100px]">งบประมาณ</TableHead>
+                      <TableHead className="w-[100px]">สถานะ</TableHead>
+                      <TableHead className="w-[120px]">เวลา</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {helpRequests.map((request) => (
+                      <TableRow key={request.id}>
+                        <TableCell className="font-medium">{request.title}</TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            <p className="text-sm line-clamp-2">{request.description}</p>
+                            {request.image_urls && request.image_urls.length > 0 && (
+                              <div className="flex gap-1">
+                                {request.image_urls.slice(0, 3).map((url: string, idx: number) => (
+                                  <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`รูปภาพ ${idx + 1}`}
+                                    className="w-12 h-12 object-cover rounded border cursor-pointer hover:opacity-80"
+                                    onClick={() => window.open(url, '_blank')}
+                                  />
+                                ))}
+                                {request.image_urls.length > 3 && (
+                                  <div className="w-12 h-12 rounded border bg-muted flex items-center justify-center text-xs">
+                                    +{request.image_urls.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        
-                        {request.location_address && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span className="line-clamp-1">{request.location_address}</span>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span>
-                            {formatDistanceToNow(new Date(request.created_at!), {
-                              addSuffix: true,
-                              locale: th
-                            })}
-                          </span>
-                        </div>
-                      </div>
-
-                      {request.budget && (
-                        <div className="pt-2 border-t">
-                          <span className="text-sm font-medium">งบประมาณ: </span>
-                          <span className="text-sm text-muted-foreground">{request.budget}</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                        </TableCell>
+                        <TableCell>
+                          {request.help_types && request.help_types.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {request.help_types.slice(0, 2).map((type: string) => (
+                                <Badge key={type} variant="secondary" className="text-xs">
+                                  {type}
+                                </Badge>
+                              ))}
+                              {request.help_types.length > 2 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{request.help_types.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{request.contact_name}</TableCell>
+                        <TableCell className="text-sm">
+                          {request.contact_phone && request.contact_phone.length > 0
+                            ? request.contact_phone[0]
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {request.location_address ? (
+                            <span className="line-clamp-2">{request.location_address}</span>
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {request.budget || '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="destructive" className="text-xs">
+                            เปิด
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(request.created_at!), {
+                            addSuffix: true,
+                            locale: th
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </TabsContent>
@@ -664,77 +678,77 @@ export default function HelpBrowse() {
                 ยังไม่มีรายการอาสาสมัคร
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {helpOffers.map((offer) => (
-                  <Card key={offer.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <CardTitle className="text-lg">{offer.name}</CardTitle>
-                        <Badge className="shrink-0 bg-green-500">พร้อม</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {offer.description}
-                      </p>
-                      
-                      {offer.services_offered && offer.services_offered.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {offer.services_offered.map((service: string) => (
-                            <Badge key={service} variant="secondary" className="text-xs">
-                              {service}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="space-y-2 text-sm">
-                        {offer.capacity && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Users className="w-4 h-4" />
-                            <span>{offer.capacity}</span>
-                          </div>
-                        )}
-                        
-                        {offer.skills && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <span className="font-medium">ทักษะ:</span>
-                            <span>{offer.skills}</span>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="w-4 h-4" />
-                          <span>{offer.contact_info}</span>
-                        </div>
-                        
-                        {offer.location_area && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span>{offer.location_area}</span>
-                          </div>
-                        )}
-                        
-                        {offer.availability && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="w-4 h-4" />
-                            <span>{offer.availability}</span>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 text-muted-foreground text-xs pt-2 border-t">
-                          <Clock className="w-3 h-3" />
-                          <span>
-                            {formatDistanceToNow(new Date(offer.created_at!), {
-                              addSuffix: true,
-                              locale: th
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[150px]">ชื่อ</TableHead>
+                      <TableHead>รายละเอียด</TableHead>
+                      <TableHead className="w-[150px]">บริการที่ให้</TableHead>
+                      <TableHead className="w-[120px]">ความสามารถ</TableHead>
+                      <TableHead className="w-[120px]">ทักษะ</TableHead>
+                      <TableHead className="w-[150px]">ติดต่อ</TableHead>
+                      <TableHead className="w-[120px]">พื้นที่</TableHead>
+                      <TableHead className="w-[120px]">ช่วงเวลา</TableHead>
+                      <TableHead className="w-[100px]">สถานะ</TableHead>
+                      <TableHead className="w-[120px]">เวลา</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {helpOffers.map((offer) => (
+                      <TableRow key={offer.id}>
+                        <TableCell className="font-medium">{offer.name}</TableCell>
+                        <TableCell>
+                          <p className="text-sm line-clamp-2">{offer.description}</p>
+                        </TableCell>
+                        <TableCell>
+                          {offer.services_offered && offer.services_offered.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {offer.services_offered.slice(0, 2).map((service: string) => (
+                                <Badge key={service} variant="secondary" className="text-xs">
+                                  {service}
+                                </Badge>
+                              ))}
+                              {offer.services_offered.length > 2 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{offer.services_offered.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {offer.capacity || '-'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {offer.skills || '-'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {offer.contact_info}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {offer.location_area || '-'}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {offer.availability || '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="text-xs bg-green-500">
+                            พร้อม
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(offer.created_at!), {
+                            addSuffix: true,
+                            locale: th
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </TabsContent>
