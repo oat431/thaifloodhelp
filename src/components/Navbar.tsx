@@ -260,10 +260,7 @@ const Navbar = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[90vw] max-w-sm overflow-y-auto"
-              >
+              <SheetContent side="right" className="w-[280px] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <img src={logo} alt="Logo" className="h-6 w-6" />
