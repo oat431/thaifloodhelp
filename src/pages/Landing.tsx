@@ -23,7 +23,7 @@ const Landing = () => {
   
   const { data: helpStats = { helpRequestsCount: 0, helpOffersCount: 0 } } = useHelpStats();
   
-  const [mode, setMode] = useState<'during' | 'after'>('during');
+  const [mode, setMode] = useState<'during' | 'after'>('after');
   
   const containerVariants = {
     hidden: {
