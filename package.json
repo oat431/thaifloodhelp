@@ -19,11 +19,15 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --mode development",
+    "dev:staging": "vite --mode staging",
+    "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
+    "build:staging": "vite build --mode staging",
+    "build:production": "vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:staging": "vite preview --mode staging"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
