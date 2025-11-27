@@ -32,16 +32,11 @@ const Landing = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section with Background Image */}
-      <section
-        className="relative overflow-hidden py-12 md:py-16 px-4 min-h-screen flex items-center"
-        style={{
-          backgroundImage: `url(${heroFlood})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+      <section className="relative overflow-hidden py-12 md:py-16 px-4 min-h-[calc(100vh-4rem)] flex items-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroFlood})` }}
       >
         {/* Black overlay with 50% opacity */}
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/50 -z-10" />
 
         <motion.div
           className="max-w-6xl mx-auto text-center relative z-10 w-full"
@@ -92,9 +87,9 @@ const Landing = () => {
           {/* Real-time Stats with Glassmorphism */}
           <motion.div
             variants={itemVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 max-w-2xl mx-auto mb-6 md:mb-8 px-4 justify-items-center sm:justify-items-stretch"
+            className="grid grid-cols-2 gap-3 md:gap-4 max-w-md md:max-w-2xl mx-auto mb-6 md:mb-8 px-4"
           >
-            <div className="bg-white/15 backdrop-blur-lg rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
+            <div className="bg-white/15 backdrop-blur-lg rounded-lg md:rounded-xl p-4 md:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 will-change-transform">
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-1">
                 {stats.totalReports}
               </div>
@@ -102,7 +97,7 @@ const Landing = () => {
                 รายงานในระบบ
               </div>
             </div>
-            <div className="bg-white/15 backdrop-blur-lg rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
+            <div className="bg-white/15 backdrop-blur-lg rounded-lg md:rounded-xl p-4 md:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 will-change-transform">
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-1">
                 {stats.urgentCount}
               </div>
@@ -115,38 +110,34 @@ const Landing = () => {
           {/* CTA Buttons */}
           <motion.div
             variants={itemVariants}
-            className="flex flex-col gap-3 md:gap-4 justify-center items-center max-w-2xl mx-auto"
+            className="flex flex-col gap-3 md:gap-4 justify-center items-center max-w-xl md:max-w-2xl mx-auto px-4"
           >
             {/* Primary CTA - ช่วยใส่ข้อมูล */}
-            <div className="w-full px-4">
-              <Button
-                size="lg"
-                className="w-full text-sm sm:text-base md:text-lg h-12 sm:h-14 md:h-16 px-4 sm:px-6 md:px-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-2xl shadow-orange-500/50 font-bold rounded-lg md:rounded-xl border-2 border-white/30 transform hover:scale-105 transition-all duration-300"
-                onClick={() => navigate('/extraction')}
-              >
-                <MessageSquarePlus className="mr-2 h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 flex-shrink-0" />
-                <div className="flex flex-col items-start">
-                  <span className="text-sm sm:text-base md:text-lg">
-                    ช่วยใส่ข้อมูลจาก Social
-                  </span>
-                  <span className="text-xs font-normal opacity-90 hidden sm:block">
-                    คุณสามารถช่วยชีวิตได้ด้วยการใส่ข้อมูล
-                  </span>
-                </div>
-              </Button>
-            </div>
+            <Button
+              size="lg"
+              className="w-full text-sm sm:text-base md:text-lg h-14 sm:h-16 md:h-18 px-4 sm:px-6 md:px-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-2xl shadow-orange-500/50 font-bold rounded-lg md:rounded-xl border-2 border-white/30 hover:scale-[1.02] active:scale-100 transition-transform duration-200"
+              onClick={() => navigate('/extraction')}
+            >
+              <MessageSquarePlus className="mr-2 h-5 sm:h-6 md:h-7 w-5 sm:w-6 md:w-7 flex-shrink-0" />
+              <div className="flex flex-col items-start gap-0.5">
+                <span className="text-sm sm:text-base md:text-lg leading-tight">
+                  ช่วยใส่ข้อมูลจาก Social
+                </span>
+                <span className="text-xs font-normal opacity-90 hidden sm:block leading-tight">
+                  คุณสามารถช่วยชีวิตได้ด้วยการใส่ข้อมูล
+                </span>
+              </div>
+            </Button>
 
             {/* Secondary CTA - ค้นหา */}
-            <div className="w-full flex gap-3 px-4">
-              <Button
-                size="lg"
-                className="flex-1 text-xs sm:text-sm md:text-base h-10 sm:h-12 px-3 sm:px-4 md:px-6 bg-white text-blue-600 hover:bg-white/90 shadow-xl font-semibold rounded-lg"
-                onClick={() => navigate('/dashboard')}
-              >
-                <Search className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">ค้นหาผู้ต้องการความช่วยเหลือ</span>
-              </Button>
-            </div>
+            <Button
+              size="lg"
+              className="w-full text-xs sm:text-sm md:text-base h-12 sm:h-14 px-4 sm:px-6 md:px-8 bg-white text-blue-600 hover:bg-white/90 shadow-xl font-semibold rounded-lg hover:scale-[1.02] active:scale-100 transition-transform duration-200"
+              onClick={() => navigate('/dashboard')}
+            >
+              <Search className="mr-2 h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0" />
+              <span>ค้นหาผู้ต้องการความช่วยเหลือ</span>
+            </Button>
           </motion.div>
         </motion.div>
       </section>
