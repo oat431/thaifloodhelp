@@ -18,6 +18,7 @@ import Landing from './pages/Landing'
 import Map from './pages/Map'
 import Mission from './pages/Mission'
 import NotFound from './pages/NotFound'
+import Privacy from './pages/Privacy'
 import ReportDetail from './pages/ReportDetail'
 import Review from './pages/Review'
 import SelectReports from './pages/SelectReports'
@@ -67,6 +68,7 @@ const AppContent = () => {
           <Route path="/api" element={<Api />} />
           <Route path="/mission" element={<Mission />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/privacy" element={<Privacy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

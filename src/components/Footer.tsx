@@ -1,5 +1,6 @@
 import { Github } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 interface Contributor {
   id: number
@@ -82,6 +83,13 @@ const Footer = () => {
           <p className="text-xs text-muted-foreground mt-2">
             Open source project for Thai flood relief efforts
           </p>
+
+          <Link
+            to="/privacy"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            นโยบายความเป็นส่วนตัว (Privacy Policy)
+          </Link>
         </div>
       </div>
     </footer>
