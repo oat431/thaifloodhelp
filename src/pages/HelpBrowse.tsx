@@ -243,9 +243,9 @@ export default function HelpBrowse() {
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             โพสต์ความต้องการความช่วยเหลือของคุณ หรือเสนอให้ความช่วยเหลือ
-          </p>
+          </h1>
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
