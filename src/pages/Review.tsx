@@ -8,7 +8,7 @@ import {
   LogIn,
   Save,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -62,6 +62,7 @@ interface ExtractedData {
 const Review = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const embeddingCache = useRef<Map<string, number[]>>(new Map())
   const [formData, setFormData] = useState<ExtractedData | null>(null)
   const [reports, setReports] = useState<ExtractedData[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -108,9 +109,13 @@ const Review = () => {
     }
   }, [location, navigate])
 
-  const checkForDuplicates = async (rawMessage: string) => {
+  const getEmbedding = async (rawMessage: string) => {
+    const cached = embeddingCache.current.get(rawMessage)
+    if (cached) {
+      return cached
+    }
+
     try {
-      // Generate embedding for the raw message
       const { data: embeddingData, error: embeddingError } =
         await supabase.functions.invoke('generate-embedding', {
           body: { text: rawMessage },
@@ -118,19 +123,38 @@ const Review = () => {
 
       if (embeddingError) throw embeddingError
 
+      if (embeddingData?.embedding) {
+        embeddingCache.current.set(rawMessage, embeddingData.embedding)
+        return embeddingData.embedding as number[]
+      }
+    } catch (err) {
+      console.error('Error generating embedding:', err)
+    }
+
+    return null
+  }
+
+  const checkForDuplicates = async (rawMessage: string) => {
+    try {
+      const embedding = await getEmbedding(rawMessage)
+
+      if (!embedding) {
+        return { duplicates: [], embedding: null }
+      }
+
       // Check for duplicates
       const { data: duplicateData, error: duplicateError } =
         await supabase.functions.invoke('check-duplicates', {
-          body: { embedding: embeddingData.embedding, threshold: 0.85 },
+          body: { embedding, threshold: 0.85 },
         })
 
       if (duplicateError) throw duplicateError
 
-      return duplicateData.duplicates || []
+      return { duplicates: duplicateData.duplicates || [], embedding }
     } catch (err) {
       console.error('Error checking duplicates:', err)
       // On error, return empty array to proceed with save
-      return []
+      return { duplicates: [], embedding: null }
     }
   }
 
@@ -155,7 +179,7 @@ const Review = () => {
     return Number.isFinite(value) ? value : null
   }
 
-  const performSave = async () => {
+  const performSave = async (existingEmbedding: number[] | null) => {
     if (!formData) return
 
     setIsSaving(true)
@@ -185,11 +209,9 @@ const Review = () => {
       const finalLng = normalizeCoordinate(formData.location_long)
       const finalMapLink = formData.map_link || null
 
-      // Generate embedding for the report
-      const { data: embeddingData, error: embeddingError } =
-        await supabase.functions.invoke('generate-embedding', {
-          body: { text: formData.raw_message },
-        })
+      // Generate embedding for the report (reuse cached if available)
+      const embedding =
+        existingEmbedding || (await getEmbedding(formData.raw_message))
 
       const dataToSave = {
         ...formData,
@@ -202,7 +224,7 @@ const Review = () => {
         location_long: finalLng,
         map_link: finalMapLink,
         last_contact_at: validLastContact,
-        embedding: embeddingError ? null : embeddingData.embedding,
+        embedding: embedding || null,
         number_of_patients: formData.number_of_patients || 0,
         number_of_infants: formData.number_of_infants || 0,
         help_categories: formData.help_categories || [],
@@ -269,7 +291,9 @@ const Review = () => {
 
     try {
       // Check for duplicates first
-      const foundDuplicates = await checkForDuplicates(formData.raw_message)
+      const { duplicates: foundDuplicates, embedding } = await checkForDuplicates(
+        formData.raw_message,
+      )
 
       if (foundDuplicates.length > 0) {
         // Duplicate found - update the existing record's updated_at
@@ -298,7 +322,7 @@ const Review = () => {
         }
       } else {
         // No duplicate - save the record
-        await performSave()
+        await performSave(embedding)
       }
     } catch (err) {
       console.error('Error during save:', err)
