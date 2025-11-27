@@ -1096,7 +1096,8 @@ const Dashboard = () => {
                             )}
                             {visibleColumns.has('phone') && (
                               <TableCell>
-                                {report.phone.length > 0 ? (
+                                {Array.isArray(report.phone) &&
+                                report.phone.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
                                     {report.phone.map((phoneNumber, idx) => (
                                       <Button
